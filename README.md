@@ -1,9 +1,6 @@
 ![coverimage](https://i.imgur.com/Pp4qcss.jpeg)
 
 
-
-# Afernactyl Dashboard
-
 A powerful, modern billing and management dashboard for Pterodactyl.
 
 ## Requirements
@@ -161,3 +158,11 @@ systemctl reload apache2
 *   **Pterodactyl Integration**: Create, suspend, and delete servers directly from the dashboard.
 *   **Modern UI**: Sleek, responsive design with dark mode and glassmorphism support.
 *   **Payment Gateways**: Support for PayPal, Stripe, and PhonePe.
+
+![image1](https://i.imgur.com/l9Ix4kI.png)
+![image2](https://i.imgur.com/jqx9Owk.png)
+![image3](https://i.imgur.com/x8zrBgF.png)
+![image4](https://i.imgur.com/hxId9cB.jpeg)
+![image5](https://i.imgur.com/JXkLEAC.jpeg)
+![image6](https://i.imgur.com/XwqKTHY.png)
+![image7](https://i.imgur.com/upLTnl1.jpeg)
