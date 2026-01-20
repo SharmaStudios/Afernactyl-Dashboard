@@ -1,4 +1,5 @@
 ![coverimage](https://i.imgur.com/Pp4qcss.jpeg)
+![Discord](https://img.shields.io/discord/1061564725734944818)
 
 
 A powerful, modern billing and management dashboard for Pterodactyl.
