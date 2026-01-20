@@ -1,0 +1,39 @@
+<div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #3b82f6; margin-bottom: 20px;">
+        <i class="fa-solid fa-reply"></i> New Reply on Your Ticket
+    </h2>
+
+    <p>Hi <strong>
+            <%= user.username %>
+        </strong>,</p>
+
+    <p>There's a new reply on your support ticket:</p>
+
+    <div style="background: #1f2937; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <div style="margin-bottom: 15px;">
+            <span style="color: #9ca3af;">Ticket:</span>
+            <span style="color: #fff; font-weight: 600;">#<%= ticket.id %> - <%= ticket.subject %></span>
+        </div>
+
+        <div style="border-left: 3px solid #3b82f6; padding-left: 15px; margin: 15px 0;">
+            <div style="color: #9ca3af; font-size: 12px; margin-bottom: 8px;">
+                <strong style="color: <%= isAdmin ? '#a855f7' : '#10b981' %>;">
+                    <%= isAdmin ? 'Support Team' : user.username %>
+                </strong>
+                replied:
+            </div>
+            <div style="color: #fff; line-height: 1.6;">
+                <%= replyContent %>
+            </div>
+        </div>
+    </div>
+
+    <p style="color: #9ca3af;">Click the button below to view and respond to this ticket.</p>
+
+    <div style="margin-top: 30px;">
+        <a href="<%= site_url %>/dashboard/tickets/<%= ticket.id %>"
+            style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            View Ticket
+        </a>
+    </div>
+</div>

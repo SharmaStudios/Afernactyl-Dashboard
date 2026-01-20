@@ -1,0 +1,226 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="flex-between mb-4">
+                    <div>
+                        <h1 class="page-title"><i class="fa-solid fa-shield-virus"></i> Radar Protection</h1>
+                        <p style="color: var(--text-muted); margin-top: 0.5rem;">Monitor server health and detect abuse
+                            automatically.</p>
+                    </div>
+                    <form action="/admin/radar/scan" method="POST">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fa-solid fa-radar"></i> Scan All Servers
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Stats -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="card" style="padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Total
+                            Monitored</h3>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 0;">
+                            <%= servers.length %>
+                        </p>
+                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Warnings</h3>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 0; color: #facc15;">
+                            <%= servers.filter(s=> s.radar_status === 'warning').length %>
+                        </p>
+                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <h3 style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Danger
+                            Detected</h3>
+                        <p style="font-size: 2rem; font-weight: 700; margin: 0; color: #ef4444;">
+                            <%= servers.filter(s=> s.radar_status === 'danger').length %>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Scan Settings -->
+                <div class="card mb-4" style="padding: 1.5rem;">
+                    <h3 style="margin: 0 0 1rem 0; font-size: 1rem;"><i class="fa-solid fa-gear"></i> Scan Settings</h3>
+                    <form action="/admin/radar/settings" method="POST">
+                        <!-- Enable/Disable & Interval Row -->
+                        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                            <div class="form-group" style="margin: 0;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="radar_enabled" value="true" <%=radarEnabled !=='false'
+                                        ? 'checked' : '' %>
+                                    style="width: 18px; height: 18px;">
+                                    <span class="form-label" style="margin: 0;">Enable Radar Scanning</span>
+                                </label>
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="margin-bottom: 0.5rem;">Auto-Scan Interval
+                                    (minutes)</label>
+                                <input type="number" name="radar_scan_interval" class="form-input"
+                                    value="<%= radarInterval || '30' %>" min="5" max="1440" placeholder="30"
+                                    style="width: 120px;">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                    <input type="checkbox" name="radar_discord_alerts" value="true"
+                                        <%=radarDiscordAlerts==='true' ? 'checked' : '' %>
+                                    style="width: 18px; height: 18px;">
+                                    <span class="form-label" style="margin: 0;">Send Discord Alerts</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Suspicious Files -->
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label class="form-label">Suspicious Files/Extensions</label>
+                            <textarea name="radar_suspicious_files" class="form-input" rows="2"
+                                placeholder="xmrig, minerd, cpuminer, .sh.x, wallet.dat, mining"
+                                style="font-family: monospace; font-size: 0.85rem;"><%= radarSuspiciousFiles || 'xmrig, minerd, cpuminer, .sh.x, wallet.dat, mining' %></textarea>
+                            <small style="color: var(--text-muted);">Comma-separated file names or extensions to flag as
+                                suspicious</small>
+                        </div>
+
+                        <!-- Ignore Patterns -->
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label class="form-label">Ignore Patterns</label>
+                            <textarea name="radar_ignore_files" class="form-input" rows="2"
+                                placeholder="server.jar, config.yml, plugins/"
+                                style="font-family: monospace; font-size: 0.85rem;"><%= radarIgnoreFiles || '' %></textarea>
+                            <small style="color: var(--text-muted);">Comma-separated files or patterns to skip during
+                                scans</small>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-save"></i> Save Settings
+                            </button>
+                            <small style="color: var(--text-muted);">Changes to interval require server restart.</small>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Server List -->
+                <div class="card card-table">
+                    <% if (servers.length===0) { %>
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            No servers found to monitor.
+                        </div>
+                        <% } else { %>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Server</th>
+                                            <th>Owner</th>
+                                            <th>Status</th>
+                                            <th>CPU</th>
+                                            <th>RAM</th>
+                                            <th>Disk</th>
+                                            <th>Last Scan</th>
+                                            <th>Details</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% servers.forEach(server=> {
+                                            let details = {};
+                                            try { details = JSON.parse(server.radar_details || '{}'); } catch(e) {}
+                                            %>
+                                            <tr>
+                                                <td
+                                                    style="max-width: 250px; overflow: hidden; text-overflow: ellipsis;">
+                                                    <div
+                                                        style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                        <%= server.server_name %>
+                                                    </div>
+                                                    <div
+                                                        style="font-size: 0.75rem; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                                                        <% if (server.ptero_server_id && pteroUrl) { %>
+                                                            <a href="<%= pteroUrl %>/admin/servers/view/<%= server.ptero_server_id %>"
+                                                                target="_blank"
+                                                                style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.5rem; background: var(--primary-color); color: #fff; border-radius: 4px; text-decoration: none; font-weight: 500;"
+                                                                title="Open in Pterodactyl Panel">
+                                                                <i class="fa-solid fa-server"
+                                                                    style="font-size: 0.65rem;"></i>
+                                                                Ptero #<%= server.ptero_server_id %>
+                                                            </a>
+                                                            <% } else if (server.ptero_server_id) { %>
+                                                                <span
+                                                                    style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.5rem; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 4px; font-weight: 500;">
+                                                                    <i class="fa-solid fa-server"
+                                                                        style="font-size: 0.65rem;"></i>
+                                                                    Ptero #<%= server.ptero_server_id %>
+                                                                </span>
+                                                                <% } else { %>
+                                                                    <span style="color: var(--text-muted);">No Ptero
+                                                                        ID</span>
+                                                                    <% } %>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                                        <img src="https://ui-avatars.com/api/?name=<%= server.username %>&background=random"
+                                                            style="width: 24px; height: 24px; border-radius: 50%;">
+                                                        <span>
+                                                            <%= server.username %>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <% if (server.radar_status==='danger' ) { %>
+                                                        <span class="badge badge-suspended">DANGER</span>
+                                                        <% } else if (server.radar_status==='warning' ) { %>
+                                                            <span class="badge badge-pending">WARNING</span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-active">SAFE</span>
+                                                                <% } %>
+                                                </td>
+                                                <td
+                                                    style="font-family: monospace; <%= (details.cpu > 90) ? 'color: #ef4444;' : '' %>">
+                                                    <%= details.cpu ? details.cpu.toFixed(1) + '%' : '-' %>
+                                                </td>
+                                                <td style="font-family: monospace;">
+                                                    <%= details.ram ? details.ram.toFixed(1) + '%' : '-' %>
+                                                </td>
+                                                <td
+                                                    style="font-family: monospace; <%= (details.disk > 90) ? 'color: #ef4444;' : '' %>">
+                                                    <%= details.disk ? details.disk.toFixed(1) + '%' : '-' %>
+                                                </td>
+                                                <td style="color: var(--text-muted); font-size: 0.875rem;">
+                                                    <%= server.radar_last_scan ? new
+                                                        Date(server.radar_last_scan).toLocaleString() : 'Never' %>
+                                                </td>
+                                                <td
+                                                    style="font-size: 0.75rem; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <% if (details.suspicious_files && details.suspicious_files.length>
+                                                        0) { %>
+                                                        <span style="color: #ef4444;">Suspicious: <%=
+                                                                details.suspicious_files.join(', ') %></span>
+                                    <% } else if (details.error) { %>
+                                        <span style="color: #f97316;">Error: <%= details.error %></span>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <% if (server.ptero_server_id) { %>
+                                        <a href="<%= pteroUrl %>/admin/servers/view/<%= server.ptero_server_id %>" target="_blank" class="btn btn-sm btn-secondary" title="Open in Pterodactyl">
+                                            <i class="fa-solid fa-external-link"></i>
+                                        </a>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </td>
+                                            </tr>
+                                            <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } %>
+                </div>
+            </div>
+        </div>
+
+<%- include('../partials/footer') %>

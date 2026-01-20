@@ -1,0 +1,228 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="flex-between mb-4">
+                    <h1 class="page-title"><i class="fa-solid fa-server"></i> All Servers</h1>
+                    <form action="/admin/servers/sync" method="POST">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-rotate"></i> Sync Names
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card card-table">
+                    <% if (servers.length===0) { %>
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">No servers found.
+                        </div>
+                        <% } else { %>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User</th>
+                                            <th>Server Name</th>
+                                            <th>Plan</th>
+                                            <th>Status</th>
+                                            <th>Due Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% servers.forEach(function(server) { %>
+                                            <tr>
+                                                <td>#<%= server.id %>
+                                                </td>
+                                                <td>
+                                                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                                                        <% if (server.user_gravatar) { %>
+                                                            <img src="<%= server.user_gravatar %>" alt="avatar"
+                                                                style="width:24px; height:24px; border-radius:50%;">
+                                                            <% } %>
+                                                                <%= server.username || ('User #' + server.user_id) %>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <%= server.server_name || 'Server #' + server.ptero_server_id %>
+                                                </td>
+                                                <td>
+                                                    <span class="badge badge-user">
+                                                        <%= server.plan_name || 'N/A' %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <% if (server.status==='active' ) { %>
+                                                        <span class="badge badge-active">Active</span>
+                                                        <% } else if (server.status==='suspended' ) { %>
+                                                            <span class="badge badge-suspended">Suspended</span>
+                                                            <% } else if (server.status==='installing' ) { %>
+                                                                <span class="badge badge-installing">Installing</span>
+                                                                <% } else { %>
+                                                                    <span class="badge badge-pending">
+                                                                        <%= server.status %>
+                                                                    </span>
+                                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <%= server.renewal_date ? new
+                                                        Date(server.renewal_date).toLocaleDateString() : 'N/A' %>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <% if (panelUrl) { %>
+                                                            <a href="<%= panelUrl %>/server/<%= server.ptero_identifier %>"
+                                                                target="_blank" class="btn btn-sm btn-success"
+                                                                title="Open in Panel">
+                                                                <i class="fa-solid fa-external-link"></i>
+                                                            </a>
+                                                            <% } %>
+                                                                <a href="/admin/servers/edit/<%= server.id %>"
+                                                                    class="btn btn-sm btn-primary" title="Edit Server">
+                                                                    <i class="fa-solid fa-pen"></i>
+                                                                </a>
+                                                                <% if (server.status==='suspended' ) { %>
+                                                                    <button type="button" class="btn btn-sm btn-success"
+                                                                        title="Unsuspend"
+                                                                        data-server-id="<%= server.id %>"
+                                                                        data-server-name="<%= server.server_name || 'Server' %>"
+                                                                        onclick="unsuspendServer(this)">
+                                                                        <i class="fa-solid fa-check"></i>
+                                                                    </button>
+                                                                    <% } else { %>
+                                                                        <button type="button"
+                                                                            class="btn btn-sm btn-warning"
+                                                                            title="Suspend"
+                                                                            data-server-id="<%= server.id %>"
+                                                                            data-server-name="<%= server.server_name || 'Server' %>"
+                                                                            onclick="suspendServer(this)">
+                                                                            <i class="fa-solid fa-skull"></i>
+                                                                        </button>
+                                                                        <% } %>
+                                                                            <button type="button"
+                                                                                class="btn btn-sm btn-danger"
+                                                                                title="Delete"
+                                                                                data-server-id="<%= server.id %>"
+                                                                                data-server-name="<%= server.server_name || 'Server' %>"
+                                                                                onclick="deleteServer(this)">
+                                                                                <i class="fa-solid fa-trash"></i>
+                                                                            </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Server Modal -->
+        <div id="deleteServerModal" class="modal">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-trash"></i> Delete Server</h3>
+                <p>Are you sure you want to <strong>PERMANENTLY DELETE</strong> this server?</p>
+                <p class="warning-text"><i class="fa-solid fa-exclamation-triangle"></i> This will delete the server
+                    from both Pterodactyl Panel AND the database. This action cannot be undone!</p>
+                <form id="deleteServerForm" method="POST">
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('deleteServerModal')">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete Server</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Force Delete Server Modal -->
+        <div id="forceDeleteServerModal" class="modal">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-skull"></i> Force Delete Server</h3>
+                <p>Are you sure you want to <strong>FORCE DELETE</strong> this server from the database only?</p>
+                <p class="warning-text"><i class="fa-solid fa-exclamation-triangle"></i> <strong>WARNING:</strong> Use
+                    this ONLY if the server is already deleted from Pterodactyl Panel. This will remove the record from
+                    the database without touching Pterodactyl!</p>
+                <form id="forceDeleteServerForm" method="POST">
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('forceDeleteServerModal')">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Force Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Suspend Server Modal -->
+        <div id="suspendServerModal" class="modal">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-skull"></i> Suspend Server</h3>
+                <p>Are you sure you want to suspend <strong id="suspendServerName"></strong>?</p>
+                <p class="warning-text"><i class="fa-solid fa-exclamation-triangle"></i> The server will be stopped and
+                    made inaccessible until unsuspended.</p>
+                <form id="suspendServerForm" method="POST">
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('suspendServerModal')">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Suspend Server</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Unsuspend Server Modal -->
+        <div id="unsuspendServerModal" class="modal">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-check"></i> Unsuspend Server</h3>
+                <p>Are you sure you want to unsuspend <strong id="unsuspendServerName"></strong>?</p>
+                <p style="color: var(--color-text-muted); font-size: 0.9rem;"><i class="fa-solid fa-info-circle"></i>
+                    The server will be restarted and made accessible again.</p>
+                <form id="unsuspendServerForm" method="POST">
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('unsuspendServerModal')">Cancel</button>
+                        <button type="submit" class="btn btn-success">Unsuspend Server</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function deleteServer(btn) {
+                const serverId = btn.dataset.serverId;
+                const serverName = btn.dataset.serverName;
+                document.getElementById('deleteServerForm').action = `/admin/servers/delete/${serverId}`;
+                document.getElementById('deleteServerModal').classList.add('active');
+            }
+
+            function suspendServer(btn) {
+                const serverId = btn.dataset.serverId;
+                const serverName = btn.dataset.serverName;
+                document.getElementById('suspendServerName').textContent = serverName;
+                document.getElementById('suspendServerForm').action = `/admin/servers/suspend/${serverId}`;
+                document.getElementById('suspendServerModal').classList.add('active');
+            }
+
+            function unsuspendServer(btn) {
+                const serverId = btn.dataset.serverId;
+                const serverName = btn.dataset.serverName;
+                document.getElementById('unsuspendServerName').textContent = serverName;
+                document.getElementById('unsuspendServerForm').action = `/admin/servers/unsuspend/${serverId}`;
+                document.getElementById('unsuspendServerModal').classList.add('active');
+            }
+
+            function closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function (event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.classList.remove('active');
+                }
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

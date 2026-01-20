@@ -1,0 +1,267 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="page-header">
+                    <a href="/admin/users" class="btn btn-secondary">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Users
+                    </a>
+                    <h1 class="page-title">User Details</h1>
+                </div>
+
+                <!-- User Info Card -->
+                <div class="card user-info-card">
+                    <div class="user-header">
+                        <div class="user-avatar">
+                            <img src="<%= targetUser.gravatar || 'https://www.gravatar.com/avatar/?d=identicon&s=200' %>"
+                                alt="<%= targetUser.username %>">
+                        </div>
+                        <div class="user-details">
+                            <h2>
+                                <% if (targetUser.first_name || targetUser.last_name) { %>
+                                    <%= (targetUser.first_name || '' ) + ' ' + (targetUser.last_name || '' ) %>
+                                        <% } else { %>
+                                            <%= targetUser.username %>
+                                                <% } %>
+                            </h2>
+                            <p>
+                                <%= targetUser.email %>
+                            </p>
+                            <div class="user-badges">
+                                <% if (targetUser.is_admin) { %>
+                                    <span class="badge badge-admin">Admin</span>
+                                    <% } else { %>
+                                        <span class="badge badge-user">User</span>
+                                        <% } %>
+                                            <% if (targetUser.is_suspended) { %>
+                                                <span class="badge badge-suspended">Suspended</span>
+                                                <% } else { %>
+                                                    <span class="badge badge-active">Active</span>
+                                                    <% } %>
+                            </div>
+                        </div>
+                        <div class="user-actions">
+                            <a href="/admin/users/<%= targetUser.id %>/edit" class="btn btn-secondary">
+                                <i class="fa-solid fa-edit"></i> Edit
+                            </a>
+                            <% if (!targetUser.is_admin) { %>
+                                <% if (targetUser.is_suspended) { %>
+                                    <form action="/admin/users/<%= targetUser.id %>/unsuspend" method="POST"
+                                        style="display:inline;">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa-solid fa-check"></i> Unsuspend
+                                        </button>
+                                    </form>
+                                    <% } else { %>
+                                        <form action="/admin/users/<%= targetUser.id %>/suspend" method="POST"
+                                            style="display:inline;">
+                                            <button type="submit" class="btn btn-warning">
+                                                <i class="fa-solid fa-ban"></i> Suspend
+                                            </button>
+                                        </form>
+                                        <% } %>
+                                            <form action="/admin/users/<%= targetUser.id %>/login-as" method="POST"
+                                                style="display:inline;">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fa-solid fa-right-to-bracket"></i> Login As
+                                                </button>
+                                            </form>
+                                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="user-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span><i class="fa-solid fa-user"></i> First Name</span>
+                                <div class="stat-value">
+                                    <%= targetUser.first_name || 'Not set' %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span><i class="fa-solid fa-user"></i> Last Name</span>
+                                <div class="stat-value">
+                                    <%= targetUser.last_name || 'Not set' %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span><i class="fa-solid fa-at"></i> Username</span>
+                                <div class="stat-value">
+                                    <%= targetUser.username %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span><i class="fa-solid fa-wallet"></i> Balance</span>
+                                <div class="stat-value">$<%= parseFloat(targetUser.balance).toFixed(2) %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span><i class="fa-solid fa-server"></i> Servers</span>
+                                <div class="stat-value">
+                                    <%= servers.length %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span><i class="fa-solid fa-file-invoice"></i> Invoices</span>
+                                <div class="stat-value">
+                                    <%= invoices.length %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">
+                                <span><i class="fa-solid fa-calendar"></i> Joined</span>
+                                <div class="stat-value">
+                                    <%= new Date(targetUser.created_at).toLocaleDateString() %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <% if (targetUser.is_suspended && targetUser.suspension_reason) { %>
+                        <div class="suspension-info">
+                            <i class="fa-solid fa-exclamation-triangle"></i>
+                            <strong>Suspension Reason:</strong>
+                            <%= targetUser.suspension_reason %>
+                        </div>
+                        <% } %>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="servers">
+                        <i class="fa-solid fa-server"></i> Servers (<%= servers.length %>)
+                    </button>
+                    <button class="tab-btn" data-tab="invoices">
+                        <i class="fa-solid fa-file-invoice"></i> Invoices (<%= invoices.length %>)
+                    </button>
+                </div>
+
+                <div class="tab-content active" id="servers-tab">
+                    <div class="card card-table">
+                        <% if (servers.length===0) { %>
+                            <div class="empty-state">No servers found for this user.</div>
+                            <% } else { %>
+                                <div class="table-wrap">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Server ID</th>
+                                                <th>Name</th>
+                                                <th>Plan</th>
+                                                <th>Status</th>
+                                                <th>Due Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% servers.forEach(server=> { %>
+                                                <tr>
+                                                    <td>
+                                                        <%= server.ptero_server_id || server.id %>
+                                                    </td>
+                                                    <td>
+                                                        <%= server.server_name || 'N/A' %>
+                                                    </td>
+                                                    <td>
+                                                        <%= server.plan_name %> ($<%=
+                                                                parseFloat(server.price).toFixed(2) %>
+                                                                )
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-<%= server.status %>">
+                                                            <%= server.status %>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <%= server.renewal_date ? new
+                                                            Date(server.renewal_date).toLocaleDateString() : 'N/A' %>
+                                                    </td>
+                                                    <td>
+                                                        <a href="/admin/servers/<%= server.id %>/edit"
+                                                            class="btn btn-sm btn-secondary">
+                                                            <i class="fa-solid fa-edit"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } %>
+                    </div>
+                </div>
+
+                <!-- Invoices Tab -->
+                <div class="tab-content" id="invoices-tab">
+                    <div class="card card-table">
+                        <% if (invoices.length===0) { %>
+                            <div class="empty-state">No invoices found for this user.</div>
+                            <% } else { %>
+                                <div class="table-wrap">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Invoice ID</th>
+                                                <th>Description</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% invoices.forEach(invoice=> { %>
+                                                <tr>
+                                                    <td>#<%= invoice.id %>
+                                                    </td>
+                                                    <td>
+                                                        <%= invoice.description || 'N/A' %>
+                                                    </td>
+                                                    <td>$<%= parseFloat(invoice.amount).toFixed(2) %>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-<%= invoice.status %>">
+                                                            <%= invoice.status %>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <%= new Date(invoice.created_at).toLocaleDateString() %>
+                                                    </td>
+                                                </tr>
+                                                <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Tab functionality
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active from all
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                    // Activate clicked
+                    btn.classList.add('active');
+                    document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
+                });
+            });
+        </script>
+
+        <%- include('../partials/footer') %>

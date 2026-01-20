@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title">Welcome<% if (user.first_name) { %>, <%= user.first_name %>
+                            <% } %>!</h1>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <!-- Stats Row -->
+                                <div class="stats-grid">
+                                    <div class="stat-card fade-in">
+                                        <div class="stat-icon"><i class="fa-solid fa-server"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Active Servers</h3>
+                                            <div class="value">
+                                                <%= servers.length %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+                                        <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Balance</h3>
+                                            <div class="value">$<%= balance %>
+                                            </div>
+                                            <a href="/dashboard/topup" class="btn btn-sm btn-secondary mt-2">
+                                                <i class="fa-solid fa-plus"></i> Top Up
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+                                    <h2 style="margin: 0;"><i class="fa-solid fa-cubes-stacked mr-2"></i> Your Services
+                                    </h2>
+                                    <a href="/dashboard/store" class="btn btn-sm btn-primary"><i
+                                            class="fa-solid fa-plus"></i> New Server</a>
+                                </div>
+
+                                <% if (servers.length===0) { %>
+                                    <div class="card text-center" style="padding: 4rem;">
+                                        <i class="fa-solid fa-ghost"
+                                            style="font-size: 4rem; color: var(--color-text-dim); margin-bottom: 1.5rem;"></i>
+                                        <p>You don't have any active servers yet.</p>
+                                        <a href="/dashboard/store" class="btn btn-primary mt-4">Explore Store</a>
+                                    </div>
+                                    <% } else { %>
+                                        <div class="servers-grid">
+                                            <% servers.forEach(server=> { %>
+                                                <div class="card server-card fade-in">
+                                                    <div class="status-indicator <%= server.status %>"></div>
+                                                    <div class="plan-header"
+                                                        style="text-align: left; margin-bottom: 1rem;">
+                                                        <h3 style="margin: 0;">
+                                                            <%= server.server_name || 'My Instance' %>
+                                                        </h3>
+                                                        <small class="text-muted">#<%= server.ptero_identifier
+                                                                || 'Provisioning...' %></small>
+                                                    </div>
+
+                                                    <div class="detail-row">
+                                                        <span class="label">Status</span>
+                                                        <span class="status-badge <%= server.status %>">
+                                                            <%= server.status %>
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="detail-row">
+                                                        <span class="label">Due Date</span>
+                                                        <span class="value">
+                                                            <%= new Date(server.renewal_date).toLocaleDateString() %>
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="mt-4">
+                                                        <a href="/dashboard/servers/manage/<%= server.id %>"
+                                                            class="btn btn-secondary btn-block">
+                                                            Manage <i class="fa-solid fa-screwdriver-wrench"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                        </div>
+                                        <% } %>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

@@ -1,0 +1,82 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-server"></i> My Servers</h1>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <% if (servers.length===0) { %>
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-server"></i>
+                                        <h3>No Servers Yet</h3>
+                                        <p>Purchase a plan to get started</p>
+                                        <a href="/dashboard/store" class="btn btn-primary">Browse Plans</a>
+                                    </div>
+                                    <% } else { %>
+                                        <div class="servers-grid">
+                                            <% servers.forEach(function(server) { %>
+                                                <div class="server-card">
+                                                    <div class="server-header">
+                                                        <h3 class="server-name">
+                                                            <%= server.server_name || 'Server #' + server.id %>
+                                                        </h3>
+                                                        <span class="badge badge-<%= server.status %>">
+                                                            <%= server.status %>
+                                                        </span>
+                                                    </div>
+                                                    <div class="server-details">
+                                                        <div class="info-row">
+                                                            <span class="label">Plan:</span>
+                                                            <span>
+                                                                <%= server.plan_name || 'N/A' %>
+                                                            </span>
+                                                        </div>
+                                                        <div class="info-row">
+                                                            <span class="label">Due Date:</span>
+                                                            <span>
+                                                                <%= server.renewal_date ? new
+                                                                    Date(server.renewal_date).toLocaleDateString()
+                                                                    : 'N/A' %>
+                                                            </span>
+                                                        </div>
+                                                        <div class="info-row">
+                                                            <span class="label">Location:</span>
+                                                            <span>
+                                                                <%= server.location_name || 'N/A' %>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="server-actions">
+                                                        <% if (panelUrl && server.ptero_identifier && server.status
+                                                            !=='failed' ) { %>
+                                                            <a href="<%= panelUrl %>/server/<%= server.ptero_identifier %>"
+                                                                target="_blank" class="btn btn-success btn-sm">
+                                                                <i class="fa-solid fa-gamepad"></i> Go to Panel
+                                                            </a>
+                                                            <% } %>
+                                                                <a href="/dashboard/servers/manage/<%= server.id %>"
+                                                                    class="btn btn-primary btn-sm">
+                                                                    <i class="fa-solid fa-cog"></i> Manage
+                                                                </a>
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                        </div>
+                                        <% } %>
+            </div>
+        </div>
+
+
+
+        <%- include('../partials/footer') %>

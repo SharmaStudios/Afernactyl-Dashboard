@@ -1,0 +1,181 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="flex-between mb-4">
+                    <h1 class="page-title"><i class="fa-solid fa-users-gear"></i> Affiliate Management</h1>
+                    <a href="/admin/payouts" class="btn btn-primary">
+                        <i class="fa-solid fa-money-bill-transfer mr-2"></i>Manage Payouts
+                    </a>
+                </div>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <!-- Stats Overview -->
+                                <div class="stats-grid mb-4">
+                                    <div class="stat-card fade-in">
+                                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Total Affiliates</h3>
+                                            <div class="value">
+                                                <%= affiliates.length %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+                                        <div class="stat-icon"
+                                            style="background: linear-gradient(135deg, #22c55e, #16a34a);"><i
+                                                class="fa-solid fa-check-circle"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Active</h3>
+                                            <div class="value">
+                                                <%= affiliates.filter(a=> a.is_active).length %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+                                        <div class="stat-icon"
+                                            style="background: linear-gradient(135deg, #fbbf24, #f59e0b);"><i
+                                                class="fa-solid fa-dollar-sign"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Total Payable</h3>
+                                            <div class="value">$<%= affiliates.reduce((sum, a)=> sum +
+                                                    parseFloat(a.balance || 0), 0).toFixed(2) %></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Affiliates Table -->
+                                <div class="card card-table">
+                                    <% if (affiliates.length===0) { %>
+                                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">No
+                                            affiliates found.</div>
+                                        <% } else { %>
+                                            <div class="table-wrap">
+                                                <table class="data-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>User</th>
+                                                            <th>Referral Code</th>
+                                                            <th>Commission</th>
+                                                            <th>Balance</th>
+                                                            <th>Total Earned</th>
+                                                            <th>Referrals</th>
+                                                            <th>Status</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% affiliates.forEach(aff=> { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <div style="display: flex; flex-direction: column;">
+                                                                        <span style="font-weight: 600;">
+                                                                            <%= aff.username %>
+                                                                        </span>
+                                                                        <small style="color: var(--color-text-muted);">
+                                                                            <%= aff.email %>
+                                                                        </small>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <code
+                                                                        style="background: rgba(0,0,0,0.3); padding: 0.25rem 0.5rem; border-radius: 4px; color: var(--color-primary);"><%= aff.referral_code %></code>
+                                                                </td>
+                                                                <td>
+                                                                    <%= aff.commission_rate %>%
+                                                                </td>
+                                                                <td
+                                                                    style="color: var(--color-success); font-weight: 600;">
+                                                                    $<%= parseFloat(aff.balance).toFixed(2) %>
+                                                                </td>
+                                                                <td>$<%= parseFloat(aff.total_earned).toFixed(2) %>
+                                                                </td>
+                                                                <td><span class="badge badge-user">
+                                                                        <%= aff.referral_count %>
+                                                                    </span></td>
+                                                                <td>
+                                                                    <span
+                                                                        class="badge <%= aff.is_active ? 'badge-active' : 'badge-suspended' %>">
+                                                                        <%= aff.is_active ? 'Active' : 'Disabled' %>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="action-buttons">
+                                                                        <button class="btn btn-sm btn-primary"
+                                                                            onclick="openEditModal(<%= Number(aff.id) %>, <%= Number(aff.commission_rate) %>, <%= aff.is_active ? 1 : 0 %>)">
+                                                                            <i class="fa-solid fa-edit"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+
+                                                            </tr>
+                                                            <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <% } %>
+                                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-user-edit"></i> Edit Affiliate</h3>
+                <form id="editForm" action="" method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Commission Rate (%)</label>
+                        <input type="number" name="commission_rate" id="modal_rate" class="form-control" step="0.1"
+                            min="0" max="100" required>
+                    </div>
+
+                    <div class="form-group toggle-group">
+                        <label class="switch">
+                            <input type="checkbox" name="is_active" id="modal_active" value="true">
+                            <span class="slider round"></span>
+                        </label>
+                        <span>Active / Enabled</span>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('editModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save mr-1"></i>
+                            Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            function openEditModal(id, rate, isActive) {
+                document.getElementById('editForm').action = '/admin/affiliates/' + id + '/update';
+                document.getElementById('modal_rate').value = rate;
+                document.getElementById('modal_active').checked = isActive === 1;
+                document.getElementById('editModal').classList.add('active');
+            }
+
+
+            function closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+
+            window.onclick = function (event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.classList.remove('active');
+                }
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

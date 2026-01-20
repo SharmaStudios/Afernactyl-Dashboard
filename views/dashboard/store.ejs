@@ -1,0 +1,173 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="store-header">
+                    <div class="store-title-section">
+                        <h1 class="page-title"><i class="fa-solid fa-store"></i> Store</h1>
+                        <p class="store-subtitle">Choose the perfect plan for your needs</p>
+                    </div>
+
+                    <% if (typeof availableCurrencies !=='undefined' && availableCurrencies.length> 1) { %>
+                        <div class="currency-selector">
+                            <span class="currency-label"><i class="fa-solid fa-globe"></i> Currency</span>
+                            <form action="/dashboard/set-currency" method="POST" id="currencyForm"
+                                class="currency-form">
+                                <% availableCurrencies.forEach(function(c) { %>
+                                    <label class="currency-option <%= currentCurrency === c.code ? 'active' : '' %>">
+                                        <input type="radio" name="currency" value="<%= c.code %>"
+                                            <%=currentCurrency===c.code ? 'checked' : '' %>
+                                        onchange="document.getElementById('currencyForm').submit()">
+                                        <span class="currency-badge">
+                                            <span class="currency-symbol">
+                                                <%= c.symbol %>
+                                            </span>
+                                            <span class="currency-code">
+                                                <%= c.code %>
+                                            </span>
+                                        </span>
+                                    </label>
+                                    <% }); %>
+                            </form>
+                        </div>
+                        <% } %>
+                </div>
+
+                <!-- Category Filter (Simple Tabs) -->
+                <div class="category-tabs">
+                    <button class="tab-btn active" onclick="filterPlans('all')"><i class="fa-solid fa-grid"></i> All
+                        Plans</button>
+                    <% categories.forEach(cat=> { %>
+                        <button class="tab-btn" onclick="filterPlans('<%= cat.id %>')">
+                            <%= cat.name %>
+                        </button>
+                        <% }); %>
+                </div>
+
+                <!-- Plans Grid -->
+                <div class="plans-grid">
+                    <% plans.forEach(plan=> { %>
+                        <div class="plan-card <%= plan.is_out_of_stock ? 'out-of-stock' : '' %>"
+                            data-category="<%= plan.category_id %>">
+                            <% if (plan.is_out_of_stock) { %>
+                                <div class="badge-oos">Sold Out</div>
+                                <% } %>
+
+                                    <div class="plan-header">
+                                        <h3>
+                                            <%= plan.name %>
+                                        </h3>
+                                        <div class="plan-price">
+                                            <span class="price-amount">
+                                                <%= plan.displaySymbol %>
+                                                    <%= plan.displayPrice %>
+                                            </span>
+                                            <span class="period">
+                                                <%= plan.billing_period==='weekly' ? '/week' :
+                                                    plan.billing_period==='quarterly' ? '/quarter' :
+                                                    plan.billing_period==='yearly' ? '/year' : '/month' %>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="plan-specs">
+                                        <div class="plan-spec">
+                                            <i class="fa-solid fa-memory"></i>
+                                            <div class="spec-content">
+                                                <span class="spec-value">
+                                                    <%= plan.ram / 1024 %> GB
+                                                </span>
+                                                <span class="spec-label">RAM</span>
+                                            </div>
+                                        </div>
+                                        <div class="plan-spec">
+                                            <i class="fa-solid fa-microchip"></i>
+                                            <div class="spec-content">
+                                                <span class="spec-value">
+                                                    <%= plan.cpu / 100 %> Core<%= (plan.cpu/100) !==1 ? 's' : '' %>
+                                                </span>
+                                                <span class="spec-label">CPU<% if (plan.processor_name) { %> (<%=
+                                                            plan.processor_name %>)<% } %></span>
+                                            </div>
+                                        </div>
+                                        <div class="plan-spec">
+                                            <i class="fa-solid fa-hard-drive"></i>
+                                            <div class="spec-content">
+                                                <span class="spec-value">
+                                                    <%= plan.disk / 1024 %> GB
+                                                </span>
+                                                <span class="spec-label">SSD Storage</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="plan-features">
+                                        <div class="plan-feature">
+                                            <i class="fa-solid fa-network-wired"></i>
+                                            <span>
+                                                <%= (plan.allocations || 0) + 1 %> Port<%= (plan.allocations || 0) + 1
+                                                        !==1 ? 's' : '' %>
+                                            </span>
+                                        </div>
+                                        <div class="plan-feature">
+                                            <i class="fa-solid fa-database"></i>
+                                            <span>
+                                                <%= plan.db_count || 0 %> Database<%= (plan.db_count || 0) !==1 ? 's'
+                                                        : '' %>
+                                            </span>
+                                        </div>
+                                        <div class="plan-feature">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                                            <span>
+                                                <%= plan.backups || 0 %> Backup<%= (plan.backups || 0) !==1 ? 's' : ''
+                                                        %>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <% if (plan.description) { %>
+                                        <div class="plan-desc">
+                                            <%= plan.description %>
+                                        </div>
+                                        <% } %>
+
+                                            <% if (plan.is_out_of_stock) { %>
+                                                <button class="btn btn-secondary btn-block mt-4" disabled>Out of
+                                                    Stock</button>
+                                                <% } else { %>
+                                                    <a href="/dashboard/checkout/<%= plan.id %>"
+                                                        class="btn btn-primary btn-block mt-4">
+                                                        <i class="fa-solid fa-cart-shopping"></i> Configure & Buy
+                                                    </a>
+                                                    <% } %>
+                        </div>
+                        <% }); %>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function filterPlans(catId) {
+                const plans = document.querySelectorAll('.plan-card');
+                const buttons = document.querySelectorAll('.tab-btn');
+
+                buttons.forEach(btn => btn.classList.remove('active'));
+
+                // Fix: use event correctly or find by catId
+                const target = Array.from(buttons).find(b => b.textContent.trim().toLowerCase() === catId.toLowerCase()) ||
+                    Array.from(buttons).find(b => b.getAttribute('onclick')?.includes(catId));
+                if (target) target.classList.add('active');
+
+                plans.forEach(card => {
+                    if (catId === 'all' || card.dataset.category === catId) {
+                        card.style.display = 'flex';
+                        card.classList.add('fade-in');
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= subject %>
+    </title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #0f172a;
+            /* Slate 900 similar dark blue */
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #1e293b;
+            /* Slate 800 */
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        .header {
+            background: #0f172a;
+            /* Darker blue header */
+            padding: 32px;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .header h1 {
+            color: #60a5fa;
+            /* Blue accent */
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .content {
+            padding: 40px;
+            line-height: 1.6;
+            font-size: 16px;
+            color: #cbd5e1;
+            /* Lighter text */
+        }
+
+        .button {
+            display: inline-block;
+            background: #2563eb;
+            /* Bright blue button */
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 24px;
+        }
+
+        .footer {
+            background: #0f172a;
+            padding: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            border-top: 1px solid #334155;
+        }
+
+        .code {
+            font-family: 'SF Mono', 'Monaco', monospace;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 0.5em;
+            font-weight: 700;
+            margin: 24px 0;
+            display: block;
+            color: #60a5fa;
+            border: 1px solid #334155;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 20px;
+                width: auto;
+            }
+
+            .content {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <%= site_name || 'Dashboard' %>
+            </h1>
+        </div>
+        <div class="content">
+            <%- body %>
+        </div>
+        <div class="footer">
+            <p>&copy; <%= new Date().getFullYear() %>
+                    <%= site_name || 'Dashboard' %>. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>

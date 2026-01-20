@@ -1,0 +1,137 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in" style="max-width: 800px; margin: 0 auto;">
+                <h1 class="page-title">SMTP Settings</h1>
+
+                <div class="card">
+                    <% if (success_msg && success_msg.length> 0) { %>
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-check-circle"></i>
+                            <%= success_msg %>
+                        </div>
+                        <% } %>
+
+                            <form action="/admin/smtp" method="POST">
+
+                                <div class="grid-2">
+                                    <div class="form-group" style="flex: 2;">
+                                        <label class="form-label">SMTP Host</label>
+                                        <input type="text" name="smtp_host" class="form-input"
+                                            placeholder="smtp.example.com" value="<%= settings.smtp_host || '' %>"
+                                            required>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label class="form-label">Port</label>
+                                        <input type="number" name="smtp_port" class="form-input" placeholder="587"
+                                            value="<%= settings.smtp_port || '587' %>" required>
+                                    </div>
+                                </div>
+
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" name="smtp_user" class="form-input"
+                                            placeholder="user@example.com" value="<%= settings.smtp_user || '' %>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Password</label>
+                                        <input type="password" name="smtp_pass" class="form-input"
+                                            placeholder="••••••••" value="<%= settings.smtp_pass || '' %>">
+                                    </div>
+                                </div>
+
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">From Address</label>
+                                        <input type="email" name="smtp_from" class="form-input"
+                                            placeholder="noreply@example.com" value="<%= settings.smtp_from || '' %>"
+                                            required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Secure Connection</label>
+                                        <select name="smtp_secure" class="form-input">
+                                            <option value="false" <%=settings.smtp_secure==='false' ? 'selected' : '' %>
+                                                >TLS (StartTLS) - Recommended</option>
+                                            <option value="true" <%=settings.smtp_secure==='true' ? 'selected' : '' %>
+                                                >SSL (Implicit)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="card bg-slate-800 border-slate-700 p-4 rounded-lg mt-4 mb-4"
+                                    style="background: rgba(255,255,255,0.05);">
+                                    <div class="form-group"
+                                        style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0;">
+                                        <input type="checkbox" id="enable_email_verification"
+                                            name="enable_email_verification" value="true"
+                                            <%=settings.enable_email_verification==='true' ? 'checked' : '' %>
+                                        style="width: 20px;
+                                        height: 20px; cursor: pointer;">
+                                        <div>
+                                            <label for="enable_email_verification" class="form-label"
+                                                style="margin: 0; cursor: pointer;">Enable Mandatory Email
+                                                Verification</label>
+                                            <p class="text-secondary text-sm mt-1 mb-0">Forces new users to verify email
+                                                before logging in.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4"
+                                    style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa-solid fa-save"></i> Save Configuration
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="testEmail()" id="testBtn">
+                                        <i class="fa-solid fa-paper-plane"></i> Test Email
+                                    </button>
+                                </div>
+
+                                <div class="alert alert-warning mt-4">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    Changing these settings will immediately affect all outgoing emails (Password Reset,
+                                    Welcome, etc).
+                                </div>
+
+                            </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function testEmail() {
+                const btn = document.getElementById('testBtn');
+                const originalText = btn.innerHTML;
+
+                try {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+                    const response = await fetch('/admin/smtp/test', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert('Success: ' + data.message);
+                    } else {
+                        throw new Error(data.message || 'Failed to send test email');
+                    }
+                } catch (err) {
+                    alert('Error: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+        </script>
+
+
+
+            <%- include('../partials/footer') %>

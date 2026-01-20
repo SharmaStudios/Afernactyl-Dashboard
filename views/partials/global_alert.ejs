@@ -1,0 +1,16 @@
+<%# Global Alert Banner Partial Displays a site-wide alert banner based on global_alert setting Supports types: info
+    (blue), warning (amber), danger (red) %>
+
+    <% if (locals.global_alert && global_alert.message) { // Determine alert type and icon const
+        alertType=global_alert.type || 'info' ; let alertIcon='fa-circle-info' ; if (alertType==='warning' ) {
+        alertIcon='fa-triangle-exclamation' ; } else if (alertType==='danger' ) { alertIcon='fa-circle-exclamation' ; }
+        %>
+        <div class="global-alert-banner alert-<%= alertType %>">
+            <div class="alert-content">
+                <i class="fa-solid <%= alertIcon %>"></i>
+                <span>
+                    <%= global_alert.message %>
+                </span>
+            </div>
+        </div>
+        <% } %>

@@ -1,0 +1,210 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-file-invoice-dollar"></i> My Invoices</h1>
+
+                <% if (invoices.length===0) { %>
+                    <div class="empty-state">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <h3>No Invoices Yet</h3>
+                        <p>Your payment history will appear here</p>
+                    </div>
+                    <% } else { %>
+                        <div class="card card-table">
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Invoice #</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Due Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% invoices.forEach(function(inv) { %>
+                                            <tr>
+                                                <td><strong>#<%= inv.id %></strong></td>
+                                                <td>
+                                                    <%= inv.description || inv.plan_name || 'N/A' %>
+                                                </td>
+                                                <td>
+                                                    <% if (inv.currency_code && inv.currency_code !=='USD' ) { %>
+                                                        <span class="text-primary font-bold">
+                                                            <%= inv.currency_symbol || '' %>
+                                                                <%= parseFloat(inv.currency_amount).toFixed(2) %>
+                                                                    <%= inv.currency_code %>
+                                                        </span>
+                                                        <br><small class="text-muted">($<%=
+                                                                parseFloat(inv.amount).toFixed(2) %>)</small>
+                                                        <% } else { %>
+                                                            <span class="text-primary font-bold">$<%=
+                                                                    parseFloat(inv.amount).toFixed(2) %>
+                                                            </span>
+                                                            <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if (inv.due_date) { %>
+                                                        <% const isOverdue=new Date(inv.due_date) < new Date() &&
+                                                            inv.status==='pending' ; %>
+                                                            <span class="<%= isOverdue ? 'text-danger' : '' %>">
+                                                                <%= new Date(inv.due_date).toLocaleDateString() %>
+                                                            </span>
+                                                            <% if (isOverdue) { %><br><small
+                                                                    class="text-danger">OVERDUE</small>
+                                                                <% } %>
+                                                                    <% } else { %>
+                                                                        N/A
+                                                                        <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if (inv.status==='paid' ) { %>
+                                                        <span class="badge badge-active">Paid</span>
+                                                        <% } else if (inv.status==='pending' ) { %>
+                                                            <span class="badge badge-pending">Pending</span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-suspended">
+                                                                    <%= inv.status %>
+                                                                </span>
+                                                                <% } %>
+                                                </td>
+                                                <td style="display: flex; gap: 0.5rem;">
+                                                    <a href="/dashboard/invoices/<%= inv.id %>"
+                                                        class="btn btn-sm btn-secondary" target="_blank">
+                                                        <i class="fa-solid fa-eye"></i> View
+                                                    </a>
+                                                    <% if (inv.status==='pending' ) { %>
+                                                        <a href="/dashboard/invoices/<%= inv.id %>/pay"
+                                                            class="btn btn-sm btn-primary">
+                                                            <i class="fa-solid fa-credit-card"></i> Pay Now
+                                                        </a>
+                                                        <% } %>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination Controls -->
+                            <% if (pagination && pagination.totalPages> 1) { %>
+                                <div class="pagination-container">
+                                    <div class="pagination-info">
+                                        Showing <%= ((pagination.currentPage - 1) * pagination.limit) + 1 %> - <%=
+                                                Math.min(pagination.currentPage * pagination.limit,
+                                                pagination.totalItems) %> of <%= pagination.totalItems %> invoices
+                                    </div>
+                                    <div class="pagination-controls">
+                                        <% if (pagination.hasPrev) { %>
+                                            <a href="/dashboard/invoices?page=<%= pagination.currentPage - 1 %>&limit=<%= pagination.limit %>"
+                                                class="pagination-btn">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </a>
+                                            <% } %>
+
+                                                <% const startPage=Math.max(1, pagination.currentPage - 2); const
+                                                    endPage=Math.min(pagination.totalPages, pagination.currentPage + 2);
+                                                    %>
+
+                                                    <% if (startPage> 1) { %>
+                                                        <a href="/dashboard/invoices?page=1&limit=<%= pagination.limit %>"
+                                                            class="pagination-btn">1</a>
+                                                        <% if (startPage> 2) { %><span
+                                                                class="pagination-dots">...</span>
+                                                            <% } %>
+                                                                <% } %>
+
+                                                                    <% for (let i=startPage; i <=endPage; i++) { %>
+                                                                        <a href="/dashboard/invoices?page=<%= i %>&limit=<%= pagination.limit %>"
+                                                                            class="pagination-btn <%= i === pagination.currentPage ? 'active' : '' %>">
+                                                                            <%= i %>
+                                                                        </a>
+                                                                        <% } %>
+
+                                                                            <% if (endPage < pagination.totalPages) { %>
+                                                                                <% if (endPage < pagination.totalPages -
+                                                                                    1) { %><span
+                                                                                        class="pagination-dots">...</span>
+                                                                                    <% } %>
+                                                                                        <a href="/dashboard/invoices?page=<%= pagination.totalPages %>&limit=<%= pagination.limit %>"
+                                                                                            class="pagination-btn">
+                                                                                            <%= pagination.totalPages %>
+                                                                                        </a>
+                                                                                        <% } %>
+
+                                                                                            <% if (pagination.hasNext) {
+                                                                                                %>
+                                                                                                <a href="/dashboard/invoices?page=<%= pagination.currentPage + 1 %>&limit=<%= pagination.limit %>"
+                                                                                                    class="pagination-btn">
+                                                                                                    <i
+                                                                                                        class="fa-solid fa-chevron-right"></i>
+                                                                                                </a>
+                                                                                                <% } %>
+                                    </div>
+                                </div>
+                                <% } %>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+
+        <style>
+            .pagination-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem 1.5rem;
+                border-top: 1px solid var(--glass-border);
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .pagination-info {
+                font-size: 0.85rem;
+                color: var(--color-text-muted);
+            }
+
+            .pagination-controls {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .pagination-btn {
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: var(--radius-sm);
+                background: transparent;
+                color: var(--color-text-muted);
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: all 0.2s;
+                border: 1px solid transparent;
+            }
+
+            .pagination-btn:hover {
+                background: var(--glass-bg);
+                border-color: var(--glass-border);
+                color: var(--color-text-main);
+            }
+
+            .pagination-btn.active {
+                background: var(--color-primary);
+                color: white;
+                border-color: var(--color-primary);
+            }
+
+            .pagination-dots {
+                padding: 0 0.5rem;
+                color: var(--color-text-muted);
+            }
+        </style>
+
+        <%- include('../partials/footer') %>

@@ -1,0 +1,246 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-credit-card"></i> Payment Gateways</h1>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <div class="grid-3">
+                                    <% gateways.forEach(function(gateway) { %>
+                                        <div class="card gateway-card">
+                                            <div class="card-header">
+                                                <h2>
+                                                    <%= gateway.display_name %>
+                                                </h2>
+                                                <span class="badge <%= gateway.enabled ? 'active' : 'inactive' %>">
+                                                    <%= gateway.enabled ? 'Enabled' : 'Disabled' %>
+                                                </span>
+                                            </div>
+                                            <form action="/admin/gateways/update" method="POST">
+                                                <input type="hidden" name="id" value="<%= gateway.id %>">
+
+                                                <div class="form-group toggle-group">
+                                                    <label class="switch">
+                                                        <input type="checkbox" name="enabled" <%=gateway.enabled
+                                                            ? 'checked' : '' %>>
+                                                        <span class="slider round"></span>
+                                                    </label>
+                                                    <span>Enable Gateway</span>
+                                                </div>
+
+                                                <% if (gateway.name==='stripe' ) { %>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Public Key</label>
+                                                        <input type="text" name="stripe_public_key" class="form-input"
+                                                            value="<%= gateway.config.publicKey || '' %>"
+                                                            placeholder="pk_test_...">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Secret Key</label>
+                                                        <input type="password" name="stripe_secret_key"
+                                                            class="form-input"
+                                                            value="<%= gateway.config.secretKey || '' %>"
+                                                            placeholder="sk_test_...">
+                                                        <div class="form-group"
+                                                            style="background: rgba(99, 102, 241, 0.1); padding: 1rem; border-radius: var(--radius-sm); margin-top: 1rem; border: 1px solid rgba(99, 102, 241, 0.3);">
+                                                            <label class="form-label"
+                                                                style="color: #a78bfa; display: flex; align-items: center; gap: 0.5rem;">
+                                                                <i class="fa-solid fa-info-circle"></i>
+                                                                Stripe Integration Info
+                                                            </label>
+                                                            <p
+                                                                style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0;">
+                                                                Stripe uses redirect-based checkout. No webhooks are
+                                                                currently required. Payments are verified via Stripe
+                                                                Checkout Sessions.
+                                                            </p>
+                                                        </div>
+                                                        <% } else if (gateway.name==='paypal' ) { %>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Client ID</label>
+                                                                <input type="text" name="paypal_client_id"
+                                                                    class="form-input"
+                                                                    value="<%= gateway.config.clientId || '' %>">
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label class="form-label">Secret</label>
+                                                                <input type="password" name="paypal_secret"
+                                                                    class="form-input"
+                                                                    value="<%= gateway.config.secret || '' %>">
+                                                            </div>
+                                                            <div class="form-group"
+                                                                style="background: rgba(255, 193, 7, 0.1); padding: 1rem; border-radius: var(--radius-sm); margin-top: 1rem; border: 1px solid rgba(255, 193, 7, 0.3);">
+                                                                <label class="form-label"
+                                                                    style="color: #fbbf24; display: flex; align-items: center; gap: 0.5rem;">
+                                                                    <i class="fa-solid fa-exclamation-triangle"></i>
+                                                                    PayPal Webhook Setup Required
+                                                                </label>
+                                                                <p
+                                                                    style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                                                    Configure webhooks in your PayPal Developer
+                                                                    Dashboard → Your App → Webhooks. Add this URL:
+                                                                </p>
+                                                                <div style="display: flex; gap: 0.5rem;">
+                                                                    <input type="text" class="form-input callback-url"
+                                                                        readonly data-path="/dashboard/paypal/webhook"
+                                                                        value="Loading..."
+                                                                        style="font-family: monospace; font-size: 0.85rem;">
+                                                                    <button type="button"
+                                                                        class="btn btn-secondary btn-sm"
+                                                                        onclick="copyToClipboard(this)">
+                                                                        <i class="fa-regular fa-copy"></i>
+                                                                    </button>
+                                                                </div>
+                                                                <small
+                                                                    style="color: var(--text-muted); margin-top: 0.5rem; display: block;">
+                                                                    <i class="fa-solid fa-info-circle"></i> Subscribe
+                                                                    to: CHECKOUT.ORDER.APPROVED,
+                                                                    PAYMENT.CAPTURE.COMPLETED
+                                                                </small>
+                                                            </div>
+                                                            <% } else if (gateway.name==='phonepe' ) { %>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Client ID</label>
+                                                                    <input type="text" name="phonepe_client_id"
+                                                                        class="form-input"
+                                                                        value="<%= gateway.config.clientId || '' %>"
+                                                                        placeholder="Your PhonePe Client ID">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Client Secret</label>
+                                                                    <input type="password" name="phonepe_client_secret"
+                                                                        class="form-input"
+                                                                        value="<%= gateway.config.clientSecret || '' %>"
+                                                                        placeholder="Your PhonePe Client Secret">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Client Version</label>
+                                                                    <input type="number" name="phonepe_client_version"
+                                                                        class="form-input"
+                                                                        value="<%= gateway.config.clientVersion || '1' %>"
+                                                                        placeholder="1">
+                                                                    <small style="color: var(--text-secondary);">Usually
+                                                                        "1"
+                                                                        for new integrations</small>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Environment</label>
+                                                                    <select name="phonepe_env" class="form-input">
+                                                                        <option value="sandbox"
+                                                                            <%=gateway.config.environment==='sandbox'
+                                                                            ? 'selected' : '' %>>Sandbox (Testing)
+                                                                        </option>
+                                                                        <option value="production"
+                                                                            <%=gateway.config.environment==='production'
+                                                                            ? 'selected' : '' %>>Production (Live)
+                                                                        </option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Webhook Username</label>
+                                                                    <input type="text" name="phonepe_webhook_username"
+                                                                        class="form-input"
+                                                                        value="<%= gateway.config.webhookUsername || '' %>"
+                                                                        placeholder="Configure in PhonePe Dashboard">
+                                                                    <small
+                                                                        style="color: var(--text-secondary);">Username
+                                                                        for webhook authentication (set in PhonePe
+                                                                        Dashboard)</small>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="form-label">Webhook Password</label>
+                                                                    <input type="password"
+                                                                        name="phonepe_webhook_password"
+                                                                        class="form-input"
+                                                                        value="<%= gateway.config.webhookPassword || '' %>"
+                                                                        placeholder="Configure in PhonePe Dashboard">
+                                                                    <small
+                                                                        style="color: var(--text-secondary);">Password
+                                                                        for webhook authentication (set in PhonePe
+                                                                        Dashboard)</small>
+                                                                </div>
+                                                                <div class="form-group"
+                                                                    style="background: rgba(59, 130, 246, 0.1); padding: 1rem; border-radius: var(--radius-sm); margin-top: 1rem; border: 1px solid rgba(59, 130, 246, 0.3);">
+                                                                    <label class="form-label"
+                                                                        style="color: var(--color-info); display: flex; align-items: center; gap: 0.5rem;">
+                                                                        <i class="fa-solid fa-link"></i>
+                                                                        Webhook URL (Add to PhonePe Dashboard)
+                                                                    </label>
+                                                                    <p
+                                                                        style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                                                                        Copy this URL and add it to your PhonePe
+                                                                        Business
+                                                                        Dashboard → Developer Settings → Webhooks:
+                                                                    </p>
+                                                                    <div style="display: flex; gap: 0.5rem;">
+                                                                        <input type="text"
+                                                                            class="form-input callback-url" readonly
+                                                                            data-path="/dashboard/phonepe/webhook"
+                                                                            value="Loading..."
+                                                                            style="font-family: monospace; font-size: 0.85rem;">
+                                                                        <button type="button"
+                                                                            class="btn btn-secondary btn-sm"
+                                                                            onclick="copyToClipboard(this)">
+                                                                            <i class="fa-regular fa-copy"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <small
+                                                                        style="color: var(--text-muted); margin-top: 0.5rem; display: block;">
+                                                                        <i class="fa-solid fa-info-circle"></i> PhonePe
+                                                                        will
+                                                                        send server-to-server (S2S) payment
+                                                                        notifications to
+                                                                        this URL.
+                                                                    </small>
+                                                                </div>
+                                                                <% } %>
+
+                                                                    <button type="submit"
+                                                                        class="btn btn-primary btn-block"
+                                                                        style="margin-top: 1.5rem;">
+                                                                        <i class="fa-solid fa-save"></i> Save Settings
+                                                                    </button>
+                                            </form>
+                                        </div>
+                                        <% }); %>
+                                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const protocol = window.location.protocol;
+                    const host = window.location.host;
+                    const origin = `${protocol}//${host}`;
+
+                    document.querySelectorAll('.callback-url').forEach(input => {
+                        const path = input.getAttribute('data-path');
+                        input.value = `${origin}${path}`;
+                    });
+                });
+
+                function copyToClipboard(btn) {
+                    const input = btn.previousElementSibling;
+                    input.select();
+                    document.execCommand('copy');
+
+                    const originalIcon = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    setTimeout(() => {
+                        btn.innerHTML = originalIcon;
+                    }, 2000);
+                }
+            </script>

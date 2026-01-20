@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email</title>
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020617;
+            /* Very dark blue (Slate 950) */
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: radial-gradient(circle at top right, #1e293b 0%, transparent 40%), radial-gradient(circle at bottom left, #172554 0%, transparent 40%);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 24px;
+        }
+
+        .auth-card {
+            background-color: #0f172a;
+            /* Slate 900 */
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #60a5fa;
+            /* Blue accent */
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            /* Slate 400 */
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: #1e293b;
+            /* Slate 800 */
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+            letter-spacing: 0.2em;
+            text-align: center;
+            font-family: 'Monaco', monospace;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            /* Blue 500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #3b82f6;
+            /* Blue 500 */
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            /* Blue 600 */
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background-color: #450a0a;
+            color: #fca5a5;
+            border: 1px solid #7f1d1d;
+        }
+
+        .alert-success {
+            background-color: #064e3b;
+            color: #6ee7b7;
+            border: 1px solid #065f46;
+        }
+
+        .resend-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+
+        .resend-link a {
+            color: #94a3b8;
+            text-decoration: none;
+        }
+
+        .resend-link a:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="/" class="auth-logo">Verify Email</a>
+                <div class="auth-subtitle">Check your email for the verification code.</div>
+            </div>
+
+            <% if (messages.error_msg) { %>
+                <div class="alert alert-error">
+                    <%= messages.error_msg %>
+                </div>
+                <% } %>
+                    <% if (messages.success_msg) { %>
+                        <div class="alert alert-success">
+                            <%= messages.success_msg %>
+                        </div>
+                        <% } %>
+
+                            <form action="/auth/verify" method="POST">
+                                <div class="form-group">
+                                    <label for="code" class="form-label">Verification Code</label>
+                                    <input type="text" id="code" name="code" class="form-input" placeholder="123456"
+                                        required maxlength="6">
+                                </div>
+                                <button type="submit" class="btn-primary">Verify Account</button>
+                            </form>
+
+                            <div class="resend-link">
+                                Didn't receive the code? <a href="/auth/resend-verification">Resend Code</a>
+                            </div>
+        </div>
+    </div>
+</body>
+
+</html>

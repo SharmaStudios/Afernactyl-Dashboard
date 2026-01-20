@@ -1,0 +1,93 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in" style="max-width: 600px; margin: 0 auto;">
+                <h1 class="page-title">Edit User</h1>
+                <p class="text-secondary mb-4">Editing user: <%= editUser.username %>
+                </p>
+
+                <div class="card">
+                    <form action="/admin/users/<%= editUser.id %>/edit" method="POST">
+
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-user"></i> First Name</label>
+                            <input type="text" name="first_name" class="form-input"
+                                value="<%= editUser.first_name || '' %>" placeholder="Enter first name">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-user"></i> Last Name</label>
+                            <input type="text" name="last_name" class="form-input"
+                                value="<%= editUser.last_name || '' %>" placeholder="Enter last name">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label"><i class="fa-solid fa-at"></i> Username</label>
+                            <input type="text" name="username" class="form-input" value="<%= editUser.username %>"
+                                required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-input" value="<%= editUser.email %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Balance ($)</label>
+                            <input type="number" step="0.01" name="balance" class="form-input"
+                                value="<%= editUser.balance %>">
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="is_admin" value="1" <%=editUser.is_admin ? 'checked' : ''
+                                    %>>
+                                Administrator Access
+                            </label>
+                            <p class="text-secondary text-sm mt-1" style="margin-left: 1.7rem;">Admins can access this
+                                panel and manage the system.</p>
+                        </div>
+
+                        <!-- Password Reset Optional -->
+                        <div class="form-group mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                            <label class="form-label">New Password (Optional)</label>
+                            <input type="password" name="password" class="form-input"
+                                placeholder="Leave empty to keep current password">
+                        </div>
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+                            <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+
+                    <!-- Pterodactyl Account Section -->
+                    <div class="form-group mt-4 pt-4" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                        <label class="form-label">Pterodactyl Account</label>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <span class="text-secondary">
+                                <% if (editUser.ptero_id) { %>
+                                    Panel ID: <strong>#<%= editUser.ptero_id %></strong>
+                                    <% } else { %>
+                                        <span style="color: var(--danger);">No panel account linked</span>
+                                        <% } %>
+                            </span>
+                            <form action="/admin/users/<%= editUser.id %>/refresh-ptero" method="POST"
+                                style="margin: 0;">
+                                <button type="submit" class="btn btn-sm btn-secondary">
+                                    <i class="fa-solid fa-rotate"></i> Refresh Account
+                                </button>
+                            </form>
+                        </div>
+                        <p class="text-secondary text-sm mt-1">
+                            Verifies panel account exists. Creates new if missing (404).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+  
+            <%- include('../partials/footer') %>

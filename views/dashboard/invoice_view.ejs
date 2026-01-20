@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #<%= invoice.id %>
+    </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
+            background: #fff;
+            color: #333;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        .company-info h1 {
+            font-size: 24px;
+            color: #3b82f6;
+            margin-bottom: 10px;
+        }
+
+        .company-info p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .invoice-details {
+            text-align: right;
+        }
+
+        .invoice-details h2 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .invoice-details p {
+            color: #666;
+        }
+
+        .invoice-details .invoice-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+
+        .billing-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .billing-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .billing-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        th {
+            background: #3b82f6;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .totals {
+            text-align: right;
+        }
+
+        .totals table {
+            width: auto;
+            margin-left: auto;
+        }
+
+        .totals td {
+            padding: 8px 20px;
+        }
+
+        .totals .label {
+            color: #666;
+        }
+
+        .totals .total-row {
+            font-weight: bold;
+            font-size: 18px;
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-badge.paid {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-badge.refunded {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .print-btn:hover {
+            background: #2563eb;
+        }
+
+        @media print {
+            .print-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / Download PDF</button>
+
+    <div class="invoice-header">
+        <div class="company-info">
+            <h1>
+                <%= company.name || 'Company Name' %>
+            </h1>
+            <p>
+                <%= (company.address || 'Company Address' ).replace(/\n/g, '<br>' ) %>
+            </p>
+            <% if (company.gst) { %>
+                <p><strong>GST:</strong>
+                    <%= company.gst %>
+                </p>
+                <% } %>
+        </div>
+        <div class="invoice-details">
+            <h2>INVOICE</h2>
+            <p class="invoice-number">#<%= invoice.id %>
+            </p>
+            <p><strong>Date:</strong>
+                <%= new Date(invoice.created_at).toLocaleDateString() %>
+            </p>
+            <p><span class="status-badge <%= invoice.status %>">
+                    <%= invoice.status %>
+                </span></p>
+        </div>
+    </div>
+
+    <div class="billing-section">
+        <div class="bill-to">
+            <h3>Bill To</h3>
+            <p>
+                <%= (invoice.billing_address || 'Customer Address' ).replace(/\n/g, '<br>' ) %>
+            </p>
+            <% if (invoice.gst_number) { %>
+                <p><strong>GST:</strong>
+                    <%= invoice.gst_number %>
+                </p>
+                <% } %>
+        </div>
+        <div class="bill-from">
+            <h3>From</h3>
+            <p>
+                <%= company.name || 'Company Name' %>
+            </p>
+            <p>
+                <%= (company.address || '' ).replace(/\n/g, '<br>' ) %>
+            </p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <%= invoice.description || invoice.plan_name || 'Server Hosting' %>
+                </td>
+                <td>
+                    <%= invoice.currency_symbol || '$' %>
+                        <%= parseFloat(invoice.subtotal || invoice.amount).toFixed(2) %>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <table>
+            <tr>
+                <td class="label">Subtotal:</td>
+                <td>
+                    <%= invoice.currency_symbol || '$' %>
+                        <%= parseFloat(invoice.subtotal || invoice.amount).toFixed(2) %>
+                </td>
+            </tr>
+            <% if (invoice.tax_amount && parseFloat(invoice.tax_amount)> 0) { %>
+                <tr>
+                    <td class="label">
+                        <%= company.tax_name || 'Tax' %> (<%= invoice.tax_rate %>%):
+                    </td>
+                    <td>
+                        <%= invoice.currency_symbol || '$' %>
+                            <%= parseFloat(invoice.tax_amount).toFixed(2) %>
+                    </td>
+                </tr>
+                <% } %>
+                    <tr class="total-row">
+                        <td>Total:</td>
+                        <td>
+                            <%= invoice.currency_symbol || '$' %>
+                                <!-- Use currency_amount (Local) if available, otherwise amount -->
+                                <%= parseFloat(invoice.currency_amount || invoice.amount).toFixed(2) %>
+                                    <%= invoice.currency_code %>
+                        </td>
+                    </tr>
+                    <% if (invoice.currency_code && invoice.currency_code !=='USD' ) { %>
+                        <tr>
+                            <td class="label">USD Equivalent:</td>
+                            <td>
+                                $ <%= parseFloat(invoice.amount).toFixed(2) %>
+                            </td>
+                        </tr>
+                        <% } %>
+        </table>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for your business!</p>
+        <p>This is a computer-generated invoice. No signature required.</p>
+    </div>
+</body>
+
+</html>

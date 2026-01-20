@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - Server Error</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --danger: #ef4444;
+            --accent: #3b82f6;
+            --bg-card: #1e293b;
+            --bg-code: #020617;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .error-code {
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--danger);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .error-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .error-header {
+            background: rgba(239, 68, 68, 0.1);
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+        }
+
+        .error-message {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fca5a5;
+        }
+
+        .error-body {
+            padding: 0;
+        }
+
+        .stack-trace {
+            background: var(--bg-code);
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin: 0;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .btn-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--text-secondary);
+            color: var(--bg-dark);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            margin-top: 2rem;
+            transition: all 0.2s;
+        }
+
+        .btn-home:hover {
+            background: var(--text-primary);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="error-code">500</div>
+            <div class="error-subtitle">Internal Server Error</div>
+        </div>
+
+        <div class="error-card">
+            <div class="error-header">
+                <div class="error-message">
+                    <i class="fa-solid fa-bug"></i>
+                    <%= error.message || 'Unknown Error' %>
+                </div>
+            </div>
+            <% if (error.stack) { %>
+                <div class="error-body">
+                    <pre class="stack-trace"><%= error.stack %></pre>
+                </div>
+                <% } %>
+        </div>
+
+        <center>
+            <a href="/dashboard" class="btn-home">
+                <i class="fa-solid fa-arrow-left"></i> Return to Dashboard
+            </a>
+        </center>
+    </div>
+</body>
+
+</html>

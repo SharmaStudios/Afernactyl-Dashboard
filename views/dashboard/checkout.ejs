@@ -1,0 +1,825 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title">Checkout</h1>
+
+                <% if (error_msg && error_msg.length> 0) { %>
+                    <div class="alert alert-error">
+                        <%= error_msg %>
+                    </div>
+                    <% } %>
+
+                        <div class="checkout-grid">
+                            <div class="checkout-form-card">
+                                <h2><i class="fa-solid fa-server"></i> Configure Your Server</h2>
+                                <form action="/dashboard/checkout/<%= plan.id %>" method="POST" id="checkoutForm">
+
+                                    <div class="form-group">
+                                        <label class="form-label">Server Name</label>
+                                        <input type="text" name="server_name" class="form-input"
+                                            value="<%= user.username %>'s <%= plan.name %>" required>
+                                    </div>
+
+                                    <!-- Server Type Selection (Egg) -->
+                                    <% if (typeof allowEggSelection !=='undefined' && allowEggSelection) { %>
+                                        <div class="form-group">
+                                            <label class="form-label"><i class="fa-solid fa-egg"></i> Server
+                                                Type</label>
+                                            <p class="text-secondary"
+                                                style="font-size: 0.85rem; margin-bottom: 0.75rem;">
+                                                Choose what type of server you want to run
+                                            </p>
+                                            <div class="egg-selection-grid">
+                                                <div class="form-group" style="margin-bottom: 0;">
+                                                    <label class="form-label text-secondary"
+                                                        style="font-size: 0.8rem;">Category</label>
+                                                    <select name="user_nest_id" id="nestSelect" class="form-input"
+                                                        required onchange="loadEggsForUser()">
+                                                        <option value="">Loading...</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group" style="margin-bottom: 0;">
+                                                    <label class="form-label text-secondary"
+                                                        style="font-size: 0.8rem;">Server Type</label>
+                                                    <select name="user_egg_id" id="eggSelect" class="form-input"
+                                                        required>
+                                                        <option value="">Select Category First</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% } else { %>
+                                            <!-- Hidden fields for fixed egg from plan -->
+                                            <input type="hidden" name="user_nest_id" value="<%= plan.nest_id %>">
+                                            <input type="hidden" name="user_egg_id" value="<%= plan.egg_id %>">
+                                            <% } %>
+
+                                                <div class="billing-section">
+                                                    <h3><i class="fa-solid fa-address-card"></i> Billing Address</h3>
+                                                    <div class="alert alert-warning billing-warning">
+                                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                                        <strong>Important:</strong> Providing false or incomplete
+                                                        address
+                                                        information will result in immediate service cancellation
+                                                        without refund.
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Full Name</label>
+                                                        <input type="text" name="billing_name" class="form-input"
+                                                            value="<%= user.username %>" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">Address</label>
+                                                        <textarea name="billing_address" class="form-input" rows="2"
+                                                            placeholder="Street, City, State, ZIP, Country"
+                                                            required><%= user.billing_address || '' %></textarea>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="form-label">GST / Tax ID (Optional)</label>
+                                                        <input type="text" name="gst_number" class="form-input"
+                                                            placeholder="e.g., 22AAAAA0000A1Z5"
+                                                            value="<%= user.gst_number || '' %>"
+                                                            style="text-transform: uppercase;">
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="form-label">Server Location</label>
+                                                    <div class="location-select">
+                                                        <% if (regions.length===0) { %>
+                                                            <div class="alert alert-warning">No locations available.
+                                                            </div>
+                                                            <% } else { var groupedRegions={}; var
+                                                                regionOrder=['Asia', 'Europe' , 'North America'
+                                                                , 'South America' , 'Africa' , 'Oceania' , 'Other' ];
+                                                                var firstAvailable=true; for (var i=0; i <
+                                                                regions.length; i++) { var r=regions[i]; var
+                                                                cat=r.region || 'Other' ; if (!groupedRegions[cat])
+                                                                groupedRegions[cat]=[]; groupedRegions[cat].push(r); }
+                                                                %>
+                                                                <% for (var ri=0; ri < regionOrder.length; ri++) { var
+                                                                    category=regionOrder[ri]; if
+                                                                    (!groupedRegions[category] ||
+                                                                    groupedRegions[category].length===0) continue; %>
+                                                                    <div class="region-group">
+                                                                        <div class="region-header">
+                                                                            <%= category %>
+                                                                        </div>
+                                                                        <% for (var li=0; li <
+                                                                            groupedRegions[category].length; li++) { var
+                                                                            region=groupedRegions[category][li]; var
+                                                                            flagEmoji='🌍' ; if (region.country_code &&
+                                                                            region.country_code.length===2) { var
+                                                                            code=region.country_code.toUpperCase(); var
+                                                                            c1=code.charCodeAt(0) + 127397; var
+                                                                            c2=code.charCodeAt(1) + 127397;
+                                                                            flagEmoji=String.fromCodePoint(c1, c2); } %>
+                                                                            <label
+                                                                                class="radio-card <%= region.is_sold_out ? 'sold-out' : '' %>">
+                                                                                <input type="radio" name="region"
+                                                                                    value="<%= region.id %>"
+                                                                                    data-multiplier="<%= region.multiplier %>"
+                                                                                    data-symbol="<%= region.currency_symbol %>"
+                                                                                    data-code="<%= region.currency_code %>"
+                                                                                    data-rate="<%= region.exchange_rate %>"
+                                                                                    data-fqdn="<%= region.fqdn || '' %>"
+                                                                                    data-processor="<%= region.processor_name || '' %>"
+                                                                                    <%=!region.is_sold_out &&
+                                                                                    firstAvailable ? 'checked' : '' %>
+                                                                                <%= region.is_sold_out ? 'disabled' : ''
+                                                                                    %>
+                                                                                    onchange="updatePrice()">
+                                                                                    <% if (!region.is_sold_out &&
+                                                                                        firstAvailable) {
+                                                                                        firstAvailable=false; } %>
+                                                                                        <div class="card-content">
+                                                                                            <div class="location-row">
+                                                                                                <span
+                                                                                                    class="location-name">
+                                                                                                    <span
+                                                                                                        style="font-size: 1.5em; margin-right: 8px;">
+                                                                                                        <%= flagEmoji %>
+                                                                                                    </span>
+                                                                                                    <span>
+                                                                                                        <%= region.long_name
+                                                                                                            ||
+                                                                                                            region.short
+                                                                                                            %>
+                                                                                                            <% if
+                                                                                                                (region.processor_name)
+                                                                                                                { %>
+                                                                                                                <div
+                                                                                                                    class="processor-info">
+                                                                                                                    <i
+                                                                                                                        class="fa-solid fa-microchip"></i>
+                                                                                                                    <%= region.processor_name
+                                                                                                                        %>
+                                                                                                                </div>
+                                                                                                                <% } %>
+                                                                                                    </span>
+                                                                                                    <span
+                                                                                                        class="ping-display"
+                                                                                                        id="ping-<%= region.id %>"
+                                                                                                        style="margin-left: 8px; font-size: 0.85em; color: #888;">
+                                                                                                        <i
+                                                                                                            class="fa-solid fa-spinner fa-spin"></i>
+                                                                                                    </span>
+                                                                                                </span>
+                                                                                                <span
+                                                                                                    class="location-price">
+                                                                                                    <% if
+                                                                                                        (region.is_sold_out)
+                                                                                                        { %>
+                                                                                                        <span
+                                                                                                            class="badge-oos">Sold
+                                                                                                            Out</span>
+                                                                                                        <% } else { %>
+                                                                                                            <%= plan.currencySymbol
+                                                                                                                || '$'
+                                                                                                                %>
+                                                                                                                <%= (plan.price
+                                                                                                                    *
+                                                                                                                    region.multiplier).toFixed(0)
+                                                                                                                    %>
+                                                                                                                    <%= currentCurrency
+                                                                                                                        || 'USD'
+                                                                                                                        %>
+                                                                                                                        <% }
+                                                                                                                            %>
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        </div>
+                                                                            </label>
+                                                                            <% } %>
+                                                                    </div>
+                                                                    <% } %>
+                                                                        <% } %>
+                                                    </div>
+                                                </div>
+
+                                                <% var envConfig={}; var envStr=plan.environment_config || '{}' ; try {
+                                                    envConfig=JSON.parse(envStr); } catch(e) {} var userVisibleVars=[];
+                                                    for (var key in envConfig) { if (envConfig[key] &&
+                                                    envConfig[key].user_visible) { userVisibleVars.push({ key: key, val:
+                                                    envConfig[key] }); } } %>
+                                                    <% if (userVisibleVars.length> 0) { %>
+                                                        <div class="form-group">
+                                                            <label class="form-label"><i
+                                                                    class="fa-solid fa-sliders"></i> Server
+                                                                Configuration</label>
+                                                            <div class="env-user-section">
+                                                                <% userVisibleVars.forEach(function(item) { var
+                                                                    prettyName=item.key.toLowerCase().split('_').map(function(word)
+                                                                    { return word.charAt(0).toUpperCase() +
+                                                                    word.slice(1);
+                                                                    }).join(' ');
+                                %>
+                                    <div class="env-user-row">
+                                        <label class="env-user-label"><%= prettyName %></label>
+                                        <input type="text" name="env_<%= item.key %>" class="form-input env-user-input" value="<%= item.val.value || '' %>">
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    <% } %>
+
+
+
+                    <!-- Payment Method Section -->
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-credit-card"></i> Payment Method</label>
+                        <div class="location-select">
+                            <label class="radio-card">
+                                <input type="radio" name="payment_method" value="credits" checked onchange="togglePayment(this)">
+                                <div class="card-content">
+                                    <div class="location-row">
+                                        <span class="location-name">
+                                            <i class="fa-solid fa-coins"></i> Account Credits
+                                        </span>
+                                        <span class="location-price">Balance: $<%= parseFloat(user.balance).toFixed(2) %></span>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <% if (typeof gateways !== ' undefined') { %>
+                                                                    <% gateways.forEach(function(gateway) { %>
+                                                                        <!-- PhonePe now supports all currencies with auto-conversion -->
+                                                                        <label class="radio-card">
+                                                                            <input type="radio" name="payment_method"
+                                                                                value="<%= gateway.name %>"
+                                                                                onchange="togglePayment(this)">
+                                                                            <div class="card-content">
+                                                                                <div class="location-row">
+                                                                                    <span class="location-name">
+                                                                                        <% if (gateway.name==='stripe' )
+                                                                                            { %>
+                                                                                            <i
+                                                                                                class="fa-brands fa-stripe fa-lg"></i>
+                                                                                            <% } else if
+                                                                                                (gateway.name==='paypal'
+                                                                                                ) { %>
+                                                                                                <i
+                                                                                                    class="fa-brands fa-paypal fa-lg"></i>
+                                                                                                <% } else if
+                                                                                                    (gateway.name==='phonepe'
+                                                                                                    ) { %>
+                                                                                                    <i
+                                                                                                        class="fa-solid fa-indian-rupee-sign"></i>
+                                                                                                    <% } else { %>
+                                                                                                        <i
+                                                                                                            class="fa-solid fa-credit-card"></i>
+                                                                                                        <% } %>
+                                                                                                            <%= gateway.display_name
+                                                                                                                %>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </label>
+                                                                        <% }); %>
+                                                                            <% } %>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Hidden input to pass coupon code with form -->
+                                                        <input type="hidden" name="coupon_code" id="couponCodeHidden"
+                                                            value="">
+
+                                                        <button type="submit" class="btn btn-primary btn-block mt-4"
+                                                            id="payButton">
+                                                            <i class="fa-solid fa-rocket"></i> Pay with Credits
+                                                        </button>
+                                </form>
+                            </div>
+
+                            <div class="order-summary-card">
+                                <h2><i class="fa-solid fa-receipt"></i> Order Summary</h2>
+                                <div class="summary-item">
+                                    <span>
+                                        <%= plan.name %>
+                                    </span>
+                                    <span>
+                                        <%= plan.currencySymbol || '$' %>
+                                            <%= plan.price %>
+                                                <%= currentCurrency || 'USD' %>
+                                    </span>
+                                </div>
+                                <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+
+                                <div id="priceBreakdown">
+                                    <!-- JS Populated -->
+                                </div>
+                                <div id="localPrice" class="local-price" style="display:none;"></div>
+
+                                <!-- Coupon Code Section -->
+                                <div class="coupon-section">
+                                    <div class="coupon-input-group">
+                                        <input type="text" id="couponCode" class="form-input"
+                                            placeholder="Enter coupon code">
+                                        <button type="button" class="btn btn-secondary"
+                                            onclick="applyCoupon()">Apply</button>
+                                    </div>
+                                    <div id="couponMessage" class="coupon-message"></div>
+                                </div>
+
+
+                                <div class="balance-info mt-4">
+                                    <span class="text-secondary">Your Balance:</span>
+                                    <span class="balance-amount">$<%= parseFloat(user.balance).toFixed(2) %></span>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        <script>
+            // plan.price is now in User Currency
+            var basePrice = <%= plan.price %>;
+            var currencySymbol = "<%- plan.currencySymbol || '$' %>";
+            var currencyCode = "<%= currentCurrency || 'USD' %>";
+            var taxRate = <%= taxRate || 0 %>;
+            var taxName = "<%= taxName || 'Tax' %>";
+
+            // Coupon Logic
+            var appliedDiscount = 0;
+
+            function updatePrice() {
+                var selected = document.querySelector('input[name="region"]:checked');
+                if (selected) {
+                    var multiplier = parseFloat(selected.dataset.multiplier) || 1.0;
+
+                    // Base calculated on User Currency
+                    var subtotal = basePrice * multiplier;
+
+                    // Apply Discount if any
+                    if (appliedDiscount > 0) {
+                        var amountOff = subtotal * (appliedDiscount / 100);
+                        subtotal -= amountOff;
+                    }
+
+                    var taxAmount = subtotal * (taxRate / 100);
+                    var total = subtotal + taxAmount;
+
+                    // HTML for Summary
+                    var html = `
+                        <div class="summary-item">
+                            <span>Subtotal</span>
+                            <span>${currencySymbol}${subtotal.toFixed(2)}</span>
+                        </div>
+                    `;
+
+                    if (appliedDiscount > 0) {
+                        html += `
+                        <div class="summary-item">
+                            <span style="color: var(--success);"><i class="fa-solid fa-tag"></i> Coupon</span>
+                            <span style="color: var(--success);">-${appliedDiscount}%</span>
+                        </div>
+                        `;
+                    }
+
+                    if (taxRate > 0) {
+                        html += `
+                        <div class="summary-item">
+                            <span>${taxName} (${taxRate}%)</span>
+                            <span>${currencySymbol}${taxAmount.toFixed(2)}</span>
+                        </div>
+                        `;
+                    }
+
+                    html += `
+                        <hr style="border-color: rgba(255,255,255,0.1); margin: 0.5rem 0;">
+                        <div class="summary-item total">
+                            <span>Total</span>
+                            <span>${currencySymbol}${total.toFixed(2)} ${currencyCode}</span>
+                        </div>
+                    `;
+
+                    document.getElementById('priceBreakdown').innerHTML = html;
+                    document.getElementById('localPrice').style.display = 'none'; // Legacy hide
+                }
+            }
+
+
+            // Init
+            var firstValid =
+                document.querySelector('input[name="region"]:not([disabled])');
+            if (firstValid &&
+                !document.querySelector('input[name="region"]:checked')) {
+                firstValid.checked = true;
+            }
+            updatePrice();
+
+            // Egg Selection for Users
+            <% if (typeof allowEggSelection !== 'undefined' && allowEggSelection) { %>
+                async function loadNestsForUser() {
+                    const nestSelect = document.getElementById('nestSelect');
+                    try {
+                        const res = await fetch('/dashboard/api/nests');
+                        const nests = await res.json();
+                        nestSelect.innerHTML = '<option value="">Select Category</option>';
+                        nests.forEach(nest => {
+                            const opt = document.createElement('option');
+                            opt.value = nest.id;
+                            opt.textContent = nest.name;
+                            nestSelect.appendChild(opt);
+                        });
+                    } catch (e) {
+                        nestSelect.innerHTML = '<option value="">Error loading</option>';
+                    }
+                }
+
+                async function loadEggsForUser() {
+                    const nestId = document.getElementById('nestSelect').value;
+                    const eggSelect = document.getElementById('eggSelect');
+
+                    if (!nestId) {
+                        eggSelect.innerHTML = '<option value="">Select Category First</option>';
+                        return;
+                    }
+
+                    eggSelect.innerHTML = '<option value="">Loading...</option>';
+                    try {
+                        const res = await fetch('/dashboard/api/eggs/' + nestId);
+                        const eggs = await res.json();
+                        eggSelect.innerHTML = '<option value="">Select Server Type</option>';
+                        eggs.forEach(egg => {
+                            const opt = document.createElement('option');
+                            opt.value = egg.id;
+                            opt.textContent = egg.name;
+                            eggSelect.appendChild(opt);
+                        });
+                    } catch (e) {
+                        eggSelect.innerHTML = '<option value="">Error loading</option>';
+                    }
+                }
+
+                // Load nests on page load
+                loadNestsForUser();
+            <% } %>
+        </script>
+        <script>
+                function togglePayment(radio) {
+                    const btn = document.getElementById('payButton');
+                    if (radio.value === 'credits') {
+                        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Pay with Credits';
+                    } else {
+                        btn.innerHTML = '<i class="fa-solid fa-lock"></i> Proceed to Payment';
+                    }
+                }
+
+            // Coupon Validation
+            async function applyCoupon() {
+                const code = document.getElementById('couponCode').value.trim();
+                const messageEl = document.getElementById('couponMessage');
+                const hiddenInput = document.getElementById('couponCodeHidden');
+
+                if (!code) {
+                    messageEl.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-xmark"></i> Please enter a coupon code</span>';
+                    return;
+                }
+
+                messageEl.innerHTML = '<span style="color: var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin"></i> Validating...</span>';
+
+                try {
+                    const response = await fetch('/dashboard/api/validate-coupon', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.valid) {
+                        appliedDiscount = data.discount;
+                        hiddenInput.value = code;
+                        messageEl.innerHTML = '<span style="color: var(--success);"><i class="fa-solid fa-check"></i> Coupon applied! ' + data.discount + '% off</span>';
+                        updatePrice();
+                    } else {
+                        appliedDiscount = 0;
+                        hiddenInput.value = '';
+                        messageEl.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-xmark"></i> ' + data.message + '</span>';
+                        updatePrice();
+                    }
+                } catch (err) {
+                    messageEl.innerHTML = '<span style="color: var(--danger);"><i class="fa-solid fa-xmark"></i> Error validating coupon</span>';
+                }
+            }
+        </script>
+
+        <script>
+            // Client-side ping - measures from USER'S browser to nodes
+            document.addEventListener('DOMContentLoaded', function () {
+                const regionInputs = document.querySelectorAll('input[name="region"]');
+
+                regionInputs.forEach(input => {
+                    const regionId = input.value;
+                    const fqdn = input.dataset.fqdn;
+                    const pingDisplay = document.getElementById('ping-' + regionId);
+
+                    if (!pingDisplay || !fqdn) {
+                        if (pingDisplay) pingDisplay.innerHTML = '<span style="color: #888;">N/A</span>';
+                        return;
+                    }
+
+                    // Single ping attempt
+                    const pingOnce = () => {
+                        return new Promise((resolve) => {
+                            const img = new Image();
+                            const start = performance.now();
+
+                            const done = () => {
+                                const latency = Math.round(performance.now() - start);
+                                resolve(latency);
+                            };
+
+                            img.onload = done;
+                            img.onerror = done;
+
+                            // Random path to avoid any caching issues
+                            img.src = 'https://' + fqdn + '/ping-' + Math.random() + '.gif?' + Date.now();
+
+                            setTimeout(() => resolve(null), 3000);
+                        });
+                    };
+
+                    // Run 3 pings in sequence and take the MINIMUM (most accurate after TLS warmup)
+                    const runMultiplePings = async () => {
+                        const results = [];
+
+                        for (let i = 0; i < 3; i++) {
+                            const result = await pingOnce();
+                            if (result !== null) results.push(result);
+                        }
+
+                        if (results.length > 0) {
+                            // Take minimum as it's most accurate (excludes TLS setup overhead)
+                            return Math.min(...results);
+                        }
+                        return null;
+                    };
+
+                    // Run ping and display result
+                    runMultiplePings().then(latency => {
+                        if (latency !== null) {
+                            let color = '#888';
+                            if (latency < 100) {
+                                color = '#22c55e'; // Green
+                            } else if (latency < 250) {
+                                color = '#eab308'; // Yellow
+                            } else {
+                                color = '#ef4444'; // Red
+                            }
+                            pingDisplay.innerHTML = `<span style="color: ${color};">${latency} ms</span>`;
+                        } else {
+                            pingDisplay.innerHTML = '<span style="color: #888;">N/A</span>';
+                        }
+                    });
+                });
+            });
+        </script>
+
+
+ 
+
+        <div id="processingModal" class="modal-overlay">
+            <div class="success-modal">
+                <div class="processing-spinner">
+                    <div class="spinner-large"></div>
+                </div>
+                <h2 style="color: #3b82f6;">Hold up</h2>
+                <p>Please wait while we confirm your transaction</p>
+                <div class="alert alert-warning"
+                    style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 0.75rem; border-radius: 0.5rem; margin-top: 1rem;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Do not refresh or close this tab
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Popup Modal -->
+        <div id="successModal" class="modal-overlay">
+            <div class="success-modal">
+                <div class="success-icon">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h2>Payment Successful!</h2>
+                <p>Your server is being deployed</p>
+                <div class="success-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Server Name</span>
+                        <span class="detail-value" id="modalServerName">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Plan</span>
+                        <span class="detail-value" id="modalPlanName">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Transaction ID</span>
+                        <span class="detail-value" id="modalTransactionId"
+                            style="font-family: monospace; font-size: 0.85rem;">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Method</span>
+                        <span class="detail-value" id="modalPaymentMethod">-</span>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <a href="/dashboard/invoices" class="btn btn-secondary">
+                        <i class="fa-solid fa-file-invoice"></i> View Invoice
+                    </a>
+                    <a href="/dashboard" class="btn btn-primary">
+                        <i class="fa-solid fa-home"></i> Go to Dashboard
+                    </a>
+                </div>
+                <div class="redirect-timer">
+                    <div class="spinner-small"></div>
+                    <span>Redirecting in <strong id="countdownTimer">15</strong>s...</span>
+                </div>
+            </div>
+        </div>
+        <!-- Failure Popup Modal -->
+        <div id="failureModal" class="modal-overlay">
+            <div class="success-modal">
+                <div class="success-icon"
+                    style="background: linear-gradient(135deg, #ef4444, #b91c1c); animation: none; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+                <h2 style="color: #ef4444;">Payment Failed</h2>
+                <p id="failureMessage">Your transaction could not be processed.</p>
+                <div class="alert alert-error"
+                    style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-circle-exclamation"></i> Please try again or use a different method.
+                </div>
+                <div class="btn-group">
+                    <button onclick="closeFailureModal()" class="btn btn-secondary">
+                        <i class="fa-solid fa-rotate-left"></i> Try Again
+                    </button>
+                    <a href="/dashboard/store" class="btn btn-primary">
+                        <i class="fa-solid fa-store"></i> Return to Store
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="confetti-canvas"></canvas>
+
+        <script>
+            // Check for success or failure on page load
+            <% if (typeof success !== 'undefined' && success) { %>
+                document.addEventListener('DOMContentLoaded', function () {
+                    startSuccessFlow(
+                        '<%= success.serverName || "Your Server" %>',
+                        '<%= success.planName || "Plan" %>',
+                        '<%= success.transactionId || "-" %>',
+                        '<%= success.paymentMethod || "N/A" %>'
+                    );
+                });
+            <% } %>
+
+            <% if (typeof failure !== 'undefined' && failure) { %>
+                document.addEventListener('DOMContentLoaded', function () {
+                    showFailurePopup('<%= failure.message || "Transaction failed" %>');
+                });
+            <% } %>
+
+                function closeFailureModal() {
+                    document.getElementById('failureModal').classList.remove('show');
+                }
+
+            function showFailurePopup(message) {
+                const modal = document.getElementById('failureModal');
+                if (message) document.getElementById('failureMessage').textContent = message;
+                modal.classList.add('show');
+            }
+
+            function startSuccessFlow(serverName, planName, transactionId, paymentMethod) {
+                // 1. Show Processing Modal
+                const processingModal = document.getElementById('processingModal');
+                processingModal.classList.add('show');
+
+                // 2. Wait 5 seconds
+                setTimeout(() => {
+                    // Hide processing
+                    processingModal.classList.remove('show');
+
+                    // Show success
+                    showSuccessPopup(serverName, planName, transactionId, paymentMethod);
+                }, 5000);
+            }
+
+            function showSuccessPopup(serverName, planName, transactionId, paymentMethod) {
+                const modal = document.getElementById('successModal');
+                document.getElementById('modalServerName').textContent = serverName;
+                document.getElementById('modalPlanName').textContent = planName;
+                document.getElementById('modalTransactionId').textContent = transactionId || '-';
+
+                // Format payment method for display
+                const methodLabels = {
+                    'credits': 'Account Credits',
+                    'phonepe': 'PhonePe',
+                    'stripe': 'Stripe',
+                    'paypal': 'PayPal'
+                };
+                document.getElementById('modalPaymentMethod').textContent = methodLabels[paymentMethod] || paymentMethod || 'N/A';
+
+                // Show modal
+                modal.classList.add('show');
+
+                // Start confetti
+                startConfetti();
+
+                // Countdown and redirect (15 seconds)
+                let seconds = 15;
+                const countdownEl = document.getElementById('countdownTimer');
+                const interval = setInterval(() => {
+                    seconds--;
+                    countdownEl.textContent = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(interval);
+                        window.location.href = '/dashboard';
+                    }
+                }, 1000);
+            }
+
+            function startConfetti() {
+                const canvas = document.getElementById('confetti-canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+                const confetti = [];
+
+                class Confetto {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height - canvas.height;
+                        this.w = Math.random() * 10 + 5;
+                        this.h = Math.random() * 6 + 4;
+                        this.color = colors[Math.floor(Math.random() * colors.length)];
+                        this.speed = Math.random() * 3 + 2;
+                        this.angle = Math.random() * 360;
+                        this.rotationSpeed = Math.random() * 10 - 5;
+                        this.oscillationSpeed = Math.random() * 0.05;
+                        this.oscillationDistance = Math.random() * 40;
+                        this.initialX = this.x;
+                    }
+
+                    update() {
+                        this.y += this.speed;
+                        this.angle += this.rotationSpeed;
+                        this.x = this.initialX + Math.sin(this.y * this.oscillationSpeed) * this.oscillationDistance;
+                        if (this.y > canvas.height) {
+                            this.y = -20;
+                            this.initialX = Math.random() * canvas.width;
+                        }
+                    }
+
+                    draw() {
+                        ctx.save();
+                        ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
+                        ctx.rotate(this.angle * Math.PI / 180);
+                        ctx.fillStyle = this.color;
+                        ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+                        ctx.restore();
+                    }
+                }
+
+                for (let i = 0; i < 150; i++) {
+                    confetti.push(new Confetto());
+                }
+
+                let animating = true;
+                function animate() {
+                    if (!animating) return;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    confetti.forEach(c => {
+                        c.update();
+                        c.draw();
+                    });
+                    requestAnimationFrame(animate);
+                }
+                animate();
+
+                setTimeout(() => {
+                    animating = false;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }, 10000); // Extended confetti duration
+            }
+        </script>
+
+        <style>
+            .egg-selection-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            @media (max-width: 768px) {
+                .egg-selection-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+
+        <%- include('../partials/footer') %>

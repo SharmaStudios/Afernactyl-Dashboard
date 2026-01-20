@@ -1,0 +1,311 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+
+                <!-- Welcome Section -->
+                <div class="overview-header mb-4">
+                    <div class="overview-greeting">
+                        <h1 class="page-title">
+                            <span id="greeting">Welcome back</span>, <%= user.first_name || user.username %>
+                        </h1>
+                        <p class="text-muted">Here's what's happening on your platform today.</p>
+                    </div>
+                    <div class="overview-actions">
+                        <a href="/admin/settings" class="btn btn-secondary btn-sm">
+                            <i class="fa-solid fa-gear"></i> Settings
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Version Card -->
+                <div class="card version-card mb-4" id="versionCard">
+                    <div class="version-card-content">
+                        <div class="version-icon">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                        </div>
+                        <div class="version-info">
+                            <h3 id="versionTitle"><i class="fa-solid fa-circle-notch fa-spin"></i> Checking for
+                                updates...</h3>
+                            <p id="versionDesc">Comparing versions...</p>
+                        </div>
+                        <div class="version-actions">
+                            <a href="#" id="downloadBtn" class="btn btn-primary" target="_blank" style="display: none;">
+                                <i class="fa-solid fa-download"></i> Download Update
+                            </a>
+                            <span id="upToDateBadge" class="badge badge-success" style="display: none;">
+                                <i class="fa-solid fa-check"></i> Up to Date
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Users</h3>
+                            <div class="value">
+                                <%= userCount %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Active Servers</h3>
+                            <div class="value">
+                                <%= serverCount %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Monthly Income</h3>
+                            <div class="value">$<%= Number(income).toLocaleString() %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon" style="background: rgba(244, 63, 94, 0.15); color: #fb7185;">
+                            <i class="fa-solid fa-people-group"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Affiliates</h3>
+                            <div class="value">
+                                <%= affiliateCount %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pending Payouts</h3>
+                            <div class="value">$<%= Number(pendingPayouts).toLocaleString() %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Management -->
+                <div class="row">
+                    <!-- Left Column: Quick Actions -->
+                    <div class="col-md-12 mb-4">
+                        <div class="card glass-panel h-100">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" style="gap: 1rem; margin: 0;">
+                                    <a href="/admin/plans/create"
+                                        class="col-md-3 action-btn glass-panel btn-secondary d-flex flex-column align-items-center justify-content-center p-4 text-center"
+                                        style="text-decoration: none; border-color: var(--glass-border);">
+                                        <i class="fa-solid fa-plus-circle mb-3"
+                                            style="font-size: 2rem; color: var(--color-primary);"></i>
+                                        <span style="font-weight: 600; color: var(--color-text-main);">Create
+                                            Plan</span>
+                                    </a>
+
+                                    <a href="/admin/users"
+                                        class="col-md-3 action-btn glass-panel btn-secondary d-flex flex-column align-items-center justify-content-center p-4 text-center"
+                                        style="text-decoration: none; border-color: var(--glass-border);">
+                                        <i class="fa-solid fa-user-gear mb-3"
+                                            style="font-size: 2rem; color: var(--color-info);"></i>
+                                        <span style="font-weight: 600; color: var(--color-text-main);">Manage
+                                            Users</span>
+                                    </a>
+
+                                    <a href="/admin/broadcast"
+                                        class="col-md-3 action-btn glass-panel btn-secondary d-flex flex-column align-items-center justify-content-center p-4 text-center"
+                                        style="text-decoration: none; border-color: var(--glass-border);">
+                                        <i class="fa-solid fa-bullhorn mb-3"
+                                            style="font-size: 2rem; color: var(--color-warning);"></i>
+                                        <span style="font-weight: 600; color: var(--color-text-main);">Broadcast</span>
+                                    </a>
+
+                                    <a href="/admin/theme"
+                                        class="col-md-3 action-btn glass-panel btn-secondary d-flex flex-column align-items-center justify-content-center p-4 text-center"
+                                        style="text-decoration: none; border-color: var(--glass-border);">
+                                        <i class="fa-solid fa-palette mb-3"
+                                            style="font-size: 2rem; color: #a855f7;"></i>
+                                        <span style="font-weight: 600; color: var(--color-text-main);">Theme</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <style>
+            .overview-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .overview-greeting .page-title {
+                font-size: 1.75rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .overview-greeting .text-muted {
+                margin: 0;
+            }
+
+            .overview-actions {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            /* Version Card */
+            .version-card {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(239, 68, 68, 0.05));
+                border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+
+            .version-card.up-to-date {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+                border-color: rgba(16, 185, 129, 0.3);
+            }
+
+            .version-card-content {
+                display: flex;
+                align-items: center;
+                gap: 1.25rem;
+                padding: 1rem 1.5rem;
+            }
+
+            .version-icon {
+                width: 50px;
+                height: 50px;
+                border-radius: var(--radius-md);
+                background: rgba(245, 158, 11, 0.2);
+                color: #fbbf24;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+                flex-shrink: 0;
+            }
+
+            .version-card.up-to-date .version-icon {
+                background: rgba(16, 185, 129, 0.2);
+                color: #34d399;
+            }
+
+            .version-info {
+                flex: 1;
+            }
+
+            .version-info h3 {
+                margin: 0 0 0.25rem 0;
+                font-size: 1rem;
+                font-weight: 600;
+            }
+
+            .version-info p {
+                margin: 0;
+                color: var(--color-text-muted);
+                font-size: 0.85rem;
+            }
+
+            .version-actions {
+                flex-shrink: 0;
+            }
+
+            .badge-success {
+                background: rgba(16, 185, 129, 0.2);
+                color: #34d399;
+                padding: 0.5rem 1rem;
+                border-radius: var(--radius-full);
+                font-size: 0.85rem;
+            }
+
+            @media (max-width: 768px) {
+                .overview-header {
+                    flex-direction: column;
+                }
+
+                .version-card-content {
+                    flex-direction: column;
+                    text-align: center;
+                }
+            }
+        </style>
+
+        <script>
+            const CURRENT_VERSION = 'Beta 1';
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // Set greeting based on time
+                const hour = new Date().getHours();
+                const greetingSpan = document.getElementById('greeting');
+                let greeting = 'Good evening';
+                if (hour < 12) greeting = 'Good morning';
+                else if (hour < 18) greeting = 'Good afternoon';
+                greetingSpan.textContent = greeting;
+
+                // Check version
+                checkVersion();
+            });
+
+            async function checkVersion() {
+                const card = document.getElementById('versionCard');
+                const title = document.getElementById('versionTitle');
+                const desc = document.getElementById('versionDesc');
+                const downloadBtn = document.getElementById('downloadBtn');
+                const upToDateBadge = document.getElementById('upToDateBadge');
+
+                try {
+                    console.log('[Version Check] Fetching from API...');
+                    const res = await fetch('/admin/api/version');
+                    const data = await res.json();
+                    console.log('[Version Check] API response:', data);
+
+                    if (data.version === CURRENT_VERSION) {
+                        // Up to date
+                        card.classList.add('up-to-date');
+                        title.innerHTML = '<i class="fa-solid fa-check-circle"></i> Afernactyl is up to date';
+                        desc.textContent = 'You are running version ' + CURRENT_VERSION;
+                        upToDateBadge.style.display = 'inline-flex';
+                        downloadBtn.style.display = 'none';
+                    } else {
+                        // Outdated
+                        title.innerHTML = '<i class="fa-solid fa-arrow-up"></i> Update Available!';
+                        desc.textContent = 'You are running ' + CURRENT_VERSION + '. Latest version: ' + data.version;
+                        downloadBtn.href = data.download || 'https://builtbybit.com';
+                        downloadBtn.style.display = 'inline-flex';
+                        upToDateBadge.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error('[Version Check] Error:', err);
+                    // Show local version on error
+                    title.innerHTML = '<i class="fa-solid fa-wifi-slash"></i> Version ' + CURRENT_VERSION;
+                    desc.textContent = 'Could not check for updates';
+                    card.classList.add('up-to-date');
+                }
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

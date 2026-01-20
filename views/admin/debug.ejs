@@ -1,0 +1,600 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in" style="max-width: 1400px;">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h1 class="page-title" style="margin-bottom: 0.25rem;">
+                            <i class="fa-solid fa-terminal"></i> System Debug Logs
+                        </h1>
+                        <p class="text-muted" style="margin: 0;">Real-time system monitoring and diagnostics</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm" id="autoRefreshBtn"
+                            onclick="toggleAutoRefresh()">
+                            <i class="fa-solid fa-sync-alt"></i> Auto Refresh: OFF
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="exportLogs()">
+                            <i class="fa-solid fa-download"></i> Export
+                        </button>
+                        <form action="/admin/debug/clear" method="POST" style="margin: 0;">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Clear all logs?')">
+                                <i class="fa-solid fa-trash"></i> Clear
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="debug-stats-grid mb-4">
+                    <div class="debug-stat-card">
+                        <div class="stat-icon total"><i class="fa-solid fa-list"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalCount">
+                                <%= logs.length %>
+                            </span>
+                            <span class="stat-label">Total Logs</span>
+                        </div>
+                    </div>
+                    <div class="debug-stat-card">
+                        <div class="stat-icon error"><i class="fa-solid fa-times-circle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="errorCount">
+                                <%= logs.filter(l=> l.type === 'ERROR').length %>
+                            </span>
+                            <span class="stat-label">Errors</span>
+                        </div>
+                    </div>
+                    <div class="debug-stat-card">
+                        <div class="stat-icon success"><i class="fa-solid fa-check-circle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="successCount">
+                                <%= logs.filter(l=> l.type === 'SUCCESS').length %>
+                            </span>
+                            <span class="stat-label">Success</span>
+                        </div>
+                    </div>
+                    <div class="debug-stat-card">
+                        <div class="stat-icon request"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="requestCount">
+                                <%= logs.filter(l=> l.type === 'REQUEST').length %>
+                            </span>
+                            <span class="stat-label">Requests</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs & Search -->
+                <div class="card mb-4" style="padding: 1rem 1.5rem;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div class="debug-filter-tabs">
+                            <button class="filter-tab active" data-filter="all" onclick="filterLogs('all', this)">
+                                <i class="fa-solid fa-layer-group"></i> All
+                            </button>
+                            <button class="filter-tab" data-filter="ERROR" onclick="filterLogs('ERROR', this)">
+                                <i class="fa-solid fa-times-circle"></i> Errors
+                            </button>
+                            <button class="filter-tab" data-filter="SUCCESS" onclick="filterLogs('SUCCESS', this)">
+                                <i class="fa-solid fa-check-circle"></i> Success
+                            </button>
+                            <button class="filter-tab" data-filter="REQUEST" onclick="filterLogs('REQUEST', this)">
+                                <i class="fa-solid fa-arrow-right"></i> Requests
+                            </button>
+                            <button class="filter-tab" data-filter="INFO" onclick="filterLogs('INFO', this)">
+                                <i class="fa-solid fa-info-circle"></i> Info
+                            </button>
+                        </div>
+                        <div class="debug-search">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" id="logSearch" placeholder="Search logs..."
+                                oninput="searchLogs(this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <% if (logs.length===0) { %>
+                    <div class="card empty-state">
+                        <i class="fa-solid fa-check-circle" style="color: var(--color-success);"></i>
+                        <h3>No Debug Logs</h3>
+                        <p>System is running clean. Logs will appear here when activity occurs.</p>
+                    </div>
+                    <% } else { %>
+                        <div class="card debug-logs-card">
+                            <div class="debug-logs-header">
+                                <span class="text-muted" id="visibleCount">
+                                    <%= logs.length %> entries
+                                </span>
+                                <span class="text-muted text-sm">Newest first</span>
+                            </div>
+                            <div class="debug-logs-container" id="logsContainer">
+                                <% logs.forEach((log, index)=> { %>
+                                    <div class="log-entry" data-type="<%= log.type %>" data-source="<%= log.source %>"
+                                        data-message="<%= (log.message || '').toLowerCase() %>">
+                                        <div class="log-main">
+                                            <!-- Source Badge -->
+                                            <span
+                                                class="log-badge source-<%= (log.source || 'system').toLowerCase() %>">
+                                                <% if (log.source==='PHONEPE' ) { %>
+                                                    <i class="fa-solid fa-mobile-screen-button"></i>
+                                                    <% } else if (log.source==='STRIPE' ) { %>
+                                                        <i class="fa-brands fa-stripe"></i>
+                                                        <% } else if (log.source==='PAYPAL' ) { %>
+                                                            <i class="fa-brands fa-paypal"></i>
+                                                            <% } else if (log.source==='PTERO' ) { %>
+                                                                <i class="fa-solid fa-server"></i>
+                                                                <% } else { %>
+                                                                    <i class="fa-solid fa-cube"></i>
+                                                                    <% } %>
+                                                                        <%= log.source || 'SYSTEM' %>
+                                            </span>
+
+                                            <!-- Type Badge -->
+                                            <span class="log-badge type-<%= log.type.toLowerCase() %>">
+                                                <% if (log.type==='ERROR' ) { %>
+                                                    <i class="fa-solid fa-times-circle"></i>
+                                                    <% } else if (log.type==='SUCCESS' ) { %>
+                                                        <i class="fa-solid fa-check-circle"></i>
+                                                        <% } else if (log.type==='REQUEST' ) { %>
+                                                            <i class="fa-solid fa-arrow-right"></i>
+                                                            <% } else { %>
+                                                                <i class="fa-solid fa-info-circle"></i>
+                                                                <% } %>
+                                                                    <%= log.type %>
+                                            </span>
+
+                                            <!-- Time -->
+                                            <span class="log-time">
+                                                <i class="fa-regular fa-clock"></i>
+                                                <%= log.timestamp.toLocaleTimeString() %>
+                                            </span>
+
+                                            <!-- Message -->
+                                            <span class="log-message">
+                                                <%= log.message %>
+                                            </span>
+
+                                            <!-- Actions -->
+                                            <div class="log-actions">
+                                                <% if (log.data) { %>
+                                                    <button class="log-action-btn" onclick="toggleLogData(this)"
+                                                        title="Show Details">
+                                                        <i class="fa-solid fa-chevron-down"></i>
+                                                    </button>
+                                                    <% } %>
+                                                        <button class="log-action-btn"
+                                                            onclick="copyLog('<%= log.message.replace(/'/g, " \\'")
+                                                            %>')" title="Copy">
+                                                            <i class="fa-solid fa-copy"></i>
+                                                        </button>
+                                            </div>
+                                        </div>
+
+                                        <% if (log.data) { %>
+                                            <div class="log-data-panel">
+                                                <pre><%= log.data %></pre>
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+
+        <style>
+            /* Debug Stats Grid */
+            .debug-stats-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+            }
+
+            @media (max-width: 768px) {
+                .debug-stats-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+
+            .debug-stat-card {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-lg);
+                padding: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: var(--radius-md);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+            }
+
+            .stat-icon.total {
+                background: rgba(99, 102, 241, 0.15);
+                color: var(--color-primary);
+            }
+
+            .stat-icon.error {
+                background: rgba(239, 68, 68, 0.15);
+                color: var(--color-danger);
+            }
+
+            .stat-icon.success {
+                background: rgba(16, 185, 129, 0.15);
+                color: var(--color-success);
+            }
+
+            .stat-icon.request {
+                background: rgba(14, 165, 233, 0.15);
+                color: var(--color-info);
+            }
+
+            .stat-info {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+                font-weight: 700;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+                color: var(--color-text-muted);
+            }
+
+            /* Filter Tabs */
+            .debug-filter-tabs {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .filter-tab {
+                background: transparent;
+                border: 1px solid var(--glass-border);
+                color: var(--color-text-muted);
+                padding: 0.5rem 1rem;
+                border-radius: var(--radius-full);
+                cursor: pointer;
+                transition: all 0.2s;
+                font-size: 0.85rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .filter-tab:hover {
+                border-color: var(--color-primary);
+                color: var(--color-text-main);
+            }
+
+            .filter-tab.active {
+                background: var(--color-primary);
+                border-color: var(--color-primary);
+                color: white;
+            }
+
+            /* Search */
+            .debug-search {
+                position: relative;
+                min-width: 250px;
+            }
+
+            .debug-search i {
+                position: absolute;
+                left: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--color-text-muted);
+            }
+
+            .debug-search input {
+                width: 100%;
+                background: var(--color-bg-elevated);
+                border: 1px solid var(--glass-border);
+                border-radius: var(--radius-full);
+                padding: 0.6rem 1rem 0.6rem 2.5rem;
+                color: var(--color-text-main);
+                font-size: 0.9rem;
+            }
+
+            .debug-search input:focus {
+                outline: none;
+                border-color: var(--color-primary);
+            }
+
+            /* Logs Card */
+            .debug-logs-card {
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .debug-logs-header {
+                padding: 1rem 1.5rem;
+                border-bottom: 1px solid var(--glass-border);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .debug-logs-container {
+                max-height: 65vh;
+                overflow-y: auto;
+            }
+
+            /* Log Entry */
+            .log-entry {
+                border-bottom: 1px solid var(--glass-border);
+                transition: background 0.2s;
+            }
+
+            .log-entry:hover {
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .log-entry[data-type="ERROR"] {
+                border-left: 3px solid var(--color-danger);
+            }
+
+            .log-entry[data-type="SUCCESS"] {
+                border-left: 3px solid var(--color-success);
+            }
+
+            .log-entry[data-type="REQUEST"] {
+                border-left: 3px solid var(--color-info);
+            }
+
+            .log-entry[data-type="INFO"] {
+                border-left: 3px solid var(--color-warning);
+            }
+
+            .log-main {
+                padding: 0.875rem 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+
+            /* Badges */
+            .log-badge {
+                padding: 0.25rem 0.6rem;
+                border-radius: var(--radius-sm);
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                min-width: 70px;
+                justify-content: center;
+            }
+
+            .source-phonepe {
+                background: linear-gradient(135deg, #5f259f, #8338ec);
+                color: white;
+            }
+
+            .source-stripe {
+                background: linear-gradient(135deg, #635bff, #00d4ff);
+                color: white;
+            }
+
+            .source-paypal {
+                background: linear-gradient(135deg, #003087, #009cde);
+                color: white;
+            }
+
+            .source-ptero {
+                background: linear-gradient(135deg, var(--color-primary), #818cf8);
+                color: white;
+            }
+
+            .source-system {
+                background: var(--color-bg-elevated);
+                color: var(--color-text-muted);
+            }
+
+            .type-error {
+                background: rgba(239, 68, 68, 0.15);
+                color: var(--color-danger);
+            }
+
+            .type-success {
+                background: rgba(16, 185, 129, 0.15);
+                color: var(--color-success);
+            }
+
+            .type-request {
+                background: rgba(14, 165, 233, 0.15);
+                color: var(--color-info);
+            }
+
+            .type-info {
+                background: rgba(245, 158, 11, 0.15);
+                color: var(--color-warning);
+            }
+
+            .log-time {
+                font-size: 0.75rem;
+                color: var(--color-text-muted);
+                font-family: 'JetBrains Mono', monospace;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+            }
+
+            .log-message {
+                flex: 1;
+                min-width: 200px;
+                font-weight: 500;
+            }
+
+            .log-actions {
+                display: flex;
+                gap: 0.25rem;
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+
+            .log-entry:hover .log-actions {
+                opacity: 1;
+            }
+
+            .log-action-btn {
+                background: transparent;
+                border: none;
+                color: var(--color-text-muted);
+                cursor: pointer;
+                padding: 0.35rem;
+                border-radius: var(--radius-sm);
+                transition: all 0.2s;
+            }
+
+            .log-action-btn:hover {
+                background: var(--color-bg-elevated);
+                color: var(--color-text-main);
+            }
+
+            /* Data Panel */
+            .log-data-panel {
+                display: none;
+                padding: 0 1.5rem 1rem 1.5rem;
+            }
+
+            .log-data-panel.open {
+                display: block;
+            }
+
+            .log-data-panel pre {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 1rem;
+                border-radius: var(--radius-md);
+                overflow-x: auto;
+                font-size: 0.75rem;
+                margin: 0;
+                color: var(--color-text-muted);
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+
+            /* Hidden class for filtering */
+            .log-entry.hidden {
+                display: none;
+            }
+        </style>
+
+        <script>
+            let currentFilter = 'all';
+            let searchQuery = '';
+            let autoRefresh = false;
+            let refreshInterval = null;
+
+            function filterLogs(type, btn) {
+                currentFilter = type;
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                applyFilters();
+            }
+
+            function searchLogs(query) {
+                searchQuery = query.toLowerCase();
+                applyFilters();
+            }
+
+            function applyFilters() {
+                const entries = document.querySelectorAll('.log-entry');
+                let visibleCount = 0;
+
+                entries.forEach(entry => {
+                    const type = entry.dataset.type;
+                    const message = entry.dataset.message;
+
+                    const matchesType = currentFilter === 'all' || type === currentFilter;
+                    const matchesSearch = !searchQuery || message.includes(searchQuery);
+
+                    if (matchesType && matchesSearch) {
+                        entry.classList.remove('hidden');
+                        visibleCount++;
+                    } else {
+                        entry.classList.add('hidden');
+                    }
+                });
+
+                document.getElementById('visibleCount').textContent = visibleCount + ' entries';
+            }
+
+            function toggleLogData(btn) {
+                const panel = btn.closest('.log-entry').querySelector('.log-data-panel');
+                const icon = btn.querySelector('i');
+                if (panel) {
+                    panel.classList.toggle('open');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                }
+            }
+
+            function copyLog(message) {
+                navigator.clipboard.writeText(message).then(() => {
+                    showToast('Copied to clipboard');
+                });
+            }
+
+            function showToast(msg) {
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed;bottom:2rem;right:2rem;background:var(--color-success);color:white;padding:0.75rem 1.25rem;border-radius:var(--radius-md);z-index:9999;animation:fadeIn 0.3s';
+                toast.textContent = msg;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            }
+
+            function toggleAutoRefresh() {
+                autoRefresh = !autoRefresh;
+                const btn = document.getElementById('autoRefreshBtn');
+                if (autoRefresh) {
+                    btn.innerHTML = '<i class="fa-solid fa-sync-alt fa-spin"></i> Auto Refresh: ON';
+                    btn.classList.add('btn-primary');
+                    btn.classList.remove('btn-secondary');
+                    refreshInterval = setInterval(() => location.reload(), 5000);
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-sync-alt"></i> Auto Refresh: OFF';
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-secondary');
+                    clearInterval(refreshInterval);
+                }
+            }
+
+            function exportLogs() {
+                const logs = [];
+                document.querySelectorAll('.log-entry').forEach(entry => {
+                    logs.push({
+                        type: entry.dataset.type,
+                        source: entry.dataset.source,
+                        message: entry.querySelector('.log-message')?.textContent.trim(),
+                        time: entry.querySelector('.log-time')?.textContent.trim()
+                    });
+                });
+                const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'debug-logs-' + new Date().toISOString().split('T')[0] + '.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

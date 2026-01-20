@@ -1,0 +1,71 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in" style="max-width: 600px; margin: 0 auto;">
+                <h1 class="page-title">Manage Categories</h1>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <div class="card mb-4">
+                                    <h3 class="mb-4">Create Category</h3>
+                                    <form action="/admin/categories" method="POST" style="display:flex; gap:1rem;">
+                                        <input type="text" name="name" class="form-input" placeholder="Category Name"
+                                            required>
+                                        <button type="submit" class="btn btn-primary" style="white-space:nowrap;">Add
+                                            Category</button>
+                                    </form>
+                                </div>
+
+                                <div class="card card-table">
+                                    <% if (categories.length===0) { %>
+                                        <div style="text-align: center; padding: 2rem;">No categories found.</div>
+                                        <% } else { %>
+                                            <div class="table-wrap">
+                                                <table class="data-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>ID</th>
+                                                            <th>Name</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% categories.forEach(c=> { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <%= c.id %>
+                                                                </td>
+                                                                <td>
+                                                                    <%= c.name %>
+                                                                </td>
+                                                                <td style="text-align: right;">
+                                                                    <form action="/admin/categories/<%= c.id %>/delete"
+                                                                        method="POST" style="display: inline;"
+                                                                        onsubmit="return confirm('Delete this category?');">
+                                                                        <button type="submit"
+                                                                            class="btn btn-sm btn-danger">
+                                                                            <i class="fa-solid fa-trash"></i>
+                                                                        </button>
+                                                                    </form>
+                                                                </td>
+                                                            </tr>
+                                                            <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <% } %>
+                                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

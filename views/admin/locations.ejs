@@ -1,0 +1,144 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in" style="max-width: 900px; margin: 0 auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                    <h1 class="page-title" style="margin:0;">Manage Locations</h1>
+                    <form action="/admin/locations/sync" method="POST">
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-sync"></i> Sync from
+                            Pterodactyl</button>
+                    </form>
+                </div>
+
+                <% if (error_msg && error_msg.length> 0) { %>
+                    <div class="alert alert-error">
+                        <%= error_msg %>
+                    </div>
+                    <% } %>
+                        <% if (success_msg && success_msg.length> 0) { %>
+                            <div class="alert alert-success">
+                                <%= success_msg %>
+                            </div>
+                            <% } %>
+
+                                <form action="/admin/locations/update" method="POST">
+                                    <div class="card" style="padding: 0; overflow: hidden;">
+                                        <% if (locations.length===0) { %>
+                                            <div class="text-center text-secondary py-4" style="padding: 2rem;">
+                                                No locations found. Click "Sync" to fetch from Pterodactyl.
+                                            </div>
+                                            <% } else { %>
+                                                <div class="table-responsive" style="width: 100%; overflow-x: auto;">
+                                                    <table class="data-table"
+                                                        style="width: 100%; border-collapse: collapse;">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>ID</th>
+                                                                <th>Description</th>
+                                                                <th>Processor</th>
+                                                                <th>Region</th>
+                                                                <th>Multiplier</th>
+                                                                <th>State</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <% locations.forEach(loc=> { %>
+                                                                <tr>
+                                                                    <td>
+                                                                        <%= loc.id %> <input type="hidden" name="id"
+                                                                                value="<%= loc.id %>">
+                                                                    </td>
+                                                                    <td>
+                                                                        <%= loc.long_name || loc.short %>
+                                                                            <div class="text-secondary text-sm">
+                                                                                <%= loc.short %>
+                                                                            </div>
+                                                                            <input type="hidden"
+                                                                                name="short_<%= loc.id %>"
+                                                                                value="<%= loc.short %>">
+                                                                            <input type="hidden"
+                                                                                name="long_<%= loc.id %>"
+                                                                                value="<%= loc.long_name || loc.short %>">
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="text"
+                                                                            name="processor_<%= loc.id %>"
+                                                                            value="<%= loc.processor_name || '' %>"
+                                                                            class="form-input form-sm"
+                                                                            style="width: 150px;"
+                                                                            placeholder="e.g. Ryzen 9 5950X">
+                                                                    </td>
+                                                                    <td>
+                                                                        <select name="region_<%= loc.id %>"
+                                                                            class="form-input form-sm"
+                                                                            style="width: 130px;">
+                                                                            <option value="Asia" <%=loc.region==='Asia'
+                                                                                ? 'selected' : '' %>>Asia</option>
+                                                                            <option value="Europe"
+                                                                                <%=loc.region==='Europe' ? 'selected'
+                                                                                : '' %>>Europe</option>
+                                                                            <option value="North America"
+                                                                                <%=loc.region==='North America'
+                                                                                ? 'selected' : '' %>>North America
+                                                                            </option>
+                                                                            <option value="South America"
+                                                                                <%=loc.region==='South America'
+                                                                                ? 'selected' : '' %>>South America
+                                                                            </option>
+                                                                            <option value="Africa"
+                                                                                <%=loc.region==='Africa' ? 'selected'
+                                                                                : '' %>>Africa</option>
+                                                                            <option value="Oceania"
+                                                                                <%=loc.region==='Oceania' ? 'selected'
+                                                                                : '' %>>Oceania</option>
+                                                                            <option value="Other" <%=(!loc.region ||
+                                                                                loc.region==='Other' ) ? 'selected' : ''
+                                                                                %>
+                                                                                >Other</option>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td>
+                                                                        <input type="number" step="0.1"
+                                                                            name="multiplier"
+                                                                            value="<%= loc.multiplier %>"
+                                                                            class="form-input form-sm"
+                                                                            style="width: 80px;">
+                                                                    </td>
+                                                                    <td>
+                                                                        <div
+                                                                            style="display:flex; gap:1.5rem; flex-wrap: wrap;">
+                                                                            <label class="checkbox-label">
+                                                                                <input type="checkbox"
+                                                                                    name="public_<%= loc.id %>"
+                                                                                    value="1" <%=loc.is_public
+                                                                                    ? 'checked' : '' %>>
+                                                                                Public
+                                                                            </label>
+                                                                            <label class="checkbox-label">
+                                                                                <input type="checkbox"
+                                                                                    name="soldout_<%= loc.id %>"
+                                                                                    value="1" <%=loc.is_sold_out
+                                                                                    ? 'checked' : '' %>>
+                                                                                Sold Out
+                                                                            </label>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <% }); %>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="mt-4" style="text-align: right; padding: 1rem 1.5rem;">
+                                                    <button type="submit" class="btn btn-secondary">Save
+                                                        Changes</button>
+                                                </div>
+                                                <% } %>
+                                    </div>
+                                </form>
+            </div>
+        </div>
+
+
+
+        <%- include('../partials/footer') %>

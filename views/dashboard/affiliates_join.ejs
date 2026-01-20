@@ -1,0 +1,98 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-handshake-angle"></i> Affiliate Program</h1>
+
+                <% if (error_msg && error_msg.length> 0) { %>
+                    <div class="alert alert-error">
+                        <%= error_msg %>
+                    </div>
+                    <% } %>
+
+                        <div class="card text-center" style="padding: 3rem;">
+                            <i class="fa-solid fa-money-bill-trend-up"
+                                style="font-size: 4rem; color: var(--color-success); margin-bottom: 1.5rem;"></i>
+
+                            <h2 style="font-size: 1.75rem; margin-bottom: 1rem;">Earn <%= defaultCommission %>%
+                                    Commission</h2>
+                            <p class="text-muted" style="max-width: 500px; margin: 0 auto 2rem;">
+                                Refer friends to our platform and earn commission on every payment they make. No limits,
+                                no caps — earn forever!
+                            </p>
+
+                            <form action="/dashboard/affiliates/join" method="POST" style="display: inline-block;">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fa-solid fa-rocket mr-2"></i>Join Affiliate Program
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- How it Works -->
+                        <div class="card mt-4">
+                            <h3 style="margin: 0 0 1.5rem 0; text-align: center;"><i
+                                    class="fa-solid fa-circle-question mr-2"></i>How It Works</h3>
+
+                            <div class="row">
+                                <div class="col-md-4 text-center mb-3">
+                                    <div
+                                        style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-primary-glow); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">
+                                        1</div>
+                                    <h4 style="margin: 0 0 0.5rem 0;">Get Your Code</h4>
+                                    <p class="text-muted" style="font-size: 0.9rem; margin: 0;">Join and receive a
+                                        unique referral code</p>
+                                </div>
+                                <div class="col-md-4 text-center mb-3">
+                                    <div
+                                        style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-primary-glow); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">
+                                        2</div>
+                                    <h4 style="margin: 0 0 0.5rem 0;">Share with Friends</h4>
+                                    <p class="text-muted" style="font-size: 0.9rem; margin: 0;">They enter your code
+                                        when registering</p>
+                                </div>
+                                <div class="col-md-4 text-center mb-3">
+                                    <div
+                                        style="width: 48px; height: 48px; border-radius: 50%; background: var(--color-primary-glow); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.25rem; font-weight: 700; color: var(--color-primary);">
+                                        3</div>
+                                    <h4 style="margin: 0 0 0.5rem 0;">Earn Commission</h4>
+                                    <p class="text-muted" style="font-size: 0.9rem; margin: 0;">Get <%=
+                                            defaultCommission %>% of all their payments</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Benefits -->
+                        <div class="stats-grid mt-4">
+                            <div class="stat-card fade-in">
+                                <div class="stat-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;"><i
+                                        class="fa-solid fa-infinity"></i></div>
+                                <div class="stat-info">
+                                    <h3>Lifetime Earnings</h3>
+                                    <div class="value" style="font-size: 1rem; font-weight: 400;">Earn on every payment,
+                                        forever</div>
+                                </div>
+                            </div>
+                            <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+                                <div class="stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;"><i
+                                        class="fa-solid fa-bolt"></i></div>
+                                <div class="stat-info">
+                                    <h3>Instant Tracking</h3>
+                                    <div class="value" style="font-size: 1rem; font-weight: 400;">Real-time dashboard
+                                        stats</div>
+                                </div>
+                            </div>
+                            <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+                                <div class="stat-icon" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;"><i
+                                        class="fa-solid fa-money-bill-wave"></i></div>
+                                <div class="stat-info">
+                                    <h3>Easy Payouts</h3>
+                                    <div class="value" style="font-size: 1rem; font-weight: 400;">Multiple payment
+                                        options</div>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

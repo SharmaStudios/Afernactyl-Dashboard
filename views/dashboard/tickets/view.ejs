@@ -1,0 +1,288 @@
+<%- include('../../partials/header') %>
+    <%- include('../../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in"
+                style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100vh - 4rem);">
+
+                <!-- Ticket Header -->
+                <div class="ticket-header mb-4">
+                    <div>
+                        <h1 class="page-title" style="margin:0; margin-bottom: 0.5rem;">
+                            <%= ticket.subject %>
+                        </h1>
+                        <div style="display:flex; align-items:center; gap: 1rem;">
+                            <span class="badge badge-<%= ticket.status === 'closed' ? 'secondary' : 'success' %>">
+                                <%= ticket.status %>
+                            </span>
+                            <span class="text-secondary text-sm">#<%= ticket.id %></span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-actions">
+                        <% if (user.is_admin || ticket.status !=='closed' ) { %>
+                            <form action="/dashboard/tickets/<%= ticket.id %>/status" method="POST" style="margin:0;">
+                                <% if (ticket.status !=='closed' ) { %>
+                                    <input type="hidden" name="status" value="closed">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fa-solid fa-lock"></i> Close Ticket
+                                    </button>
+                                    <% } else if (user.is_admin) { %>
+                                        <input type="hidden" name="status" value="open">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fa-solid fa-lock-open"></i> Reopen Ticket
+                                        </button>
+                                        <% } %>
+                            </form>
+                            <% } %>
+                    </div>
+                </div>
+
+                <!-- Messages Area (Scrollable) -->
+                <div class="chat-area" id="chatArea">
+                    <% messages.forEach(msg=> { %>
+                        <div class="message-row <%= msg.user_id === user.id ? 'msg-own' : 'msg-other' %>">
+                            <% if (msg.user_id !==user.id) { %>
+                                <img src="<%= msg.gravatar %>" class="msg-avatar" title="<%= msg.username %>">
+                                <% } %>
+
+                                    <div class="message-bubble">
+                                        <div class="msg-meta">
+                                            <span class="msg-author">
+                                                <%= msg.username %>
+                                                    <% if (msg.is_admin) { %>
+                                                        <span class="badge-admin">ADMIN</span>
+                                                        <% } %>
+                                            </span>
+                                            <span class="msg-time">
+                                                <%= new Date(msg.created_at).toLocaleString() %>
+                                            </span>
+                                        </div>
+                                        <div class="msg-text">
+                                            <%= msg.message %>
+                                        </div>
+                                        <% if (msg.attachment) { %>
+                                            <div class="msg-attachment">
+                                                <a href="<%= msg.attachment %>" target="_blank">
+                                                    <img src="<%= msg.attachment %>" alt="Attachment">
+                                                </a>
+                                            </div>
+                                            <% } %>
+                                    </div>
+
+                                    <% if (msg.user_id===user.id) { %>
+                                        <img src="<%= msg.gravatar %>" class="msg-avatar" title="<%= msg.username %>">
+                                        <% } %>
+                        </div>
+                        <% }); %>
+                </div>
+
+                <!-- Reply Area (Fixed Bottom) -->
+                <div class="reply-area">
+                    <% if (canned && canned.length> 0) { %>
+                        <div style="margin-bottom: 0.5rem;">
+                            <select id="cannedSelect" class="form-input" style="padding: 0.4rem; font-size: 0.9rem;"
+                                onchange="applyCanned()">
+                                <option value="">-- Select a Preset Message --</option>
+                                <% canned.forEach(c=> { %>
+                                    <option value="<%= c.message %>">
+                                        <%= c.title %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                        </div>
+                        <% } %>
+
+                            <form action="/dashboard/tickets/<%= ticket.id %>/reply" method="POST"
+                                enctype="multipart/form-data" style="display: flex; gap: 1rem; align-items: flex-end;">
+                                <div style="flex: 1; position: relative;">
+                                    <textarea name="message" id="msgInput" class="form-input reply-input" rows="1"
+                                        placeholder="Type your reply..."></textarea>
+                                    <label for="fileInput" class="attachment-btn" title="Attach File">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                    </label>
+                                    <input type="file" name="attachment" id="fileInput"
+                                        accept="image/*,.pdf,.doc,.docx,.txt,.zip,.rar" style="display: none;"
+                                        onchange="updateFileName()">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-icon"><i
+                                        class="fa-solid fa-paper-plane"></i></button>
+                            </form>
+                            <div id="fileName"
+                                style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Auto-scroll to bottom
+            const chatArea = document.getElementById('chatArea');
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+            function applyCanned() {
+                const select = document.getElementById('cannedSelect');
+                const input = document.getElementById('msgInput');
+                if (select.value) {
+                    input.value = select.value;
+                }
+            }
+
+            function updateFileName() {
+                const input = document.getElementById('fileInput');
+                const display = document.getElementById('fileName');
+                if (input.files && input.files[0]) {
+                    display.textContent = 'Attached: ' + input.files[0].name;
+                } else {
+                    display.textContent = '';
+                }
+            }
+        </script>
+
+        <style>
+            .ticket-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-bottom: 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .chat-area {
+                flex: 1;
+                overflow-y: auto;
+                padding: 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                margin-bottom: 1rem;
+                border-radius: var(--radius);
+                background: rgba(0, 0, 0, 0.1);
+            }
+
+            .message-row {
+                display: flex;
+                gap: 1rem;
+                max-width: 80%;
+            }
+
+            .msg-own {
+                align-self: flex-end;
+                flex-direction: row;
+                text-align: right;
+            }
+
+            .msg-other {
+                align-self: flex-start;
+            }
+
+            .msg-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+            }
+
+            .message-bubble {
+                background: var(--bg-card);
+                padding: 1rem;
+                border-radius: 1rem;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                color: var(--text-primary);
+                position: relative;
+                text-align: left;
+                min-width: 200px;
+            }
+
+            .msg-own .message-bubble {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: white;
+                border-bottom-right-radius: 4px;
+            }
+
+            .msg-other .message-bubble {
+                border-bottom-left-radius: 4px;
+            }
+
+            .msg-meta {
+                font-size: 0.75rem;
+                color: rgba(255, 255, 255, 0.5);
+                margin-bottom: 0.25rem;
+            }
+
+            .msg-own .msg-meta {
+                color: rgba(255, 255, 255, 0.8);
+            }
+
+            .badge-admin {
+                background: var(--warning);
+                color: white;
+                font-size: 0.6rem;
+                padding: 0.1rem 0.3rem;
+                border-radius: 4px;
+                margin-left: 0.5rem;
+                font-weight: 700;
+            }
+
+            .msg-text {
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
+            .msg-attachment {
+                margin-top: 0.5rem;
+            }
+
+            .msg-attachment img {
+                max-width: 100%;
+                border-radius: 8px;
+                max-height: 200px;
+                cursor: pointer;
+            }
+
+            .reply-area {
+                background: var(--bg-card);
+                padding: 1rem;
+                border-radius: var(--radius);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .reply-input {
+                resize: none;
+                min-height: 48px;
+                border-radius: 2rem;
+                padding-left: 1.5rem;
+                padding-right: 3rem;
+                /* Space for attach icon */
+                width: 100%;
+            }
+
+            .btn-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                flex-shrink: 0;
+            }
+
+            .attachment-btn {
+                position: absolute;
+                right: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-secondary);
+                cursor: pointer;
+                font-size: 1.2rem;
+                transition: color 0.2s;
+            }
+
+            .attachment-btn:hover {
+                color: var(--accent);
+            }
+        </style>
+
+        <%- include('../../partials/footer') %>

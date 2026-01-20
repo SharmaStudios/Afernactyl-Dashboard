@@ -1,0 +1,45 @@
+<div style="font-family: Arial, sans-serif; padding: 20px;">
+    <h2 style="color: #ef4444; margin-bottom: 20px;">
+        <i class="fa-solid fa-server"></i> Server Cancelled
+    </h2>
+
+    <p>Hi <strong>
+            <%= user.username %>
+        </strong>,</p>
+
+    <p>We're writing to inform you that your server has been cancelled.</p>
+
+    <div style="background: #1f2937; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="padding: 8px 0; color: #9ca3af;">Server Name:</td>
+                <td style="padding: 8px 0; color: #fff; font-weight: 600;">
+                    <%= server.server_name %>
+                </td>
+            </tr>
+            <% if (reason) { %>
+                <tr>
+                    <td style="padding: 8px 0; color: #9ca3af;">Reason:</td>
+                    <td style="padding: 8px 0; color: #fff;">
+                        <%= reason %>
+                    </td>
+                </tr>
+                <% } %>
+                    <tr>
+                        <td style="padding: 8px 0; color: #9ca3af;">Cancelled On:</td>
+                        <td style="padding: 8px 0; color: #fff;">
+                            <%= new Date().toLocaleDateString() %>
+                        </td>
+                    </tr>
+        </table>
+    </div>
+
+    <p style="color: #9ca3af;">If you have any questions about this cancellation, please contact our support team.</p>
+
+    <div style="margin-top: 30px;">
+        <a href="<%= site_url %>/dashboard/support"
+            style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+            Contact Support
+        </a>
+    </div>
+</div>

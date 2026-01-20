@@ -1,0 +1,171 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title">Manage Users</h1>
+
+                <div class="card card-table">
+                    <% if (users.length===0) { %>
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">No users found.</div>
+                        <% } else { %>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Username</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Balance</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% users.forEach(u=> { %>
+                                            <tr class="<%= u.is_suspended ? 'suspended-row' : '' %>">
+                                                <td>
+                                                    <%= u.id %>
+                                                </td>
+                                                <td>
+                                                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                                                        <img src="<%= u.gravatar %>" alt="avatar"
+                                                            style="width:24px; height:24px; border-radius:50%;">
+                                                        <%= u.username %>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <%= u.email %>
+                                                </td>
+                                                <td>
+                                                    <% if (u.is_admin) { %>
+                                                        <span class="badge badge-admin">Admin</span>
+                                                        <% } else { %>
+                                                            <span class="badge badge-user">User</span>
+                                                            <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if (u.is_suspended) { %>
+                                                        <span class="badge badge-suspended">Suspended</span>
+                                                        <% } else { %>
+                                                            <span class="badge badge-active">Active</span>
+                                                            <% } %>
+                                                </td>
+                                                <td>$<%= parseFloat(u.balance).toFixed(2) %>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <a href="/admin/users/<%= u.id %>/details"
+                                                            class="btn btn-sm btn-info" title="View Details">
+                                                            <i class="fa-solid fa-eye"></i>
+                                                        </a>
+                                                        <a href="/admin/users/<%= u.id %>/edit"
+                                                            class="btn btn-sm btn-secondary" title="Edit">
+                                                            <i class="fa-solid fa-edit"></i>
+                                                        </a>
+                                                        <% if (!u.is_admin) { %>
+                                                            <form action="/admin/users/<%= u.id %>/login-as"
+                                                                method="POST" style="display:inline;">
+                                                                <button type="submit" class="btn btn-sm btn-primary"
+                                                                    title="Login As User">
+                                                                    <i class="fa-solid fa-right-to-bracket"></i>
+                                                                </button>
+                                                            </form>
+                                                            <% if (u.is_suspended) { %>
+                                                                <form action="/admin/users/<%= u.id %>/unsuspend"
+                                                                    method="POST" style="display:inline;">
+                                                                    <button type="submit" class="btn btn-sm btn-success"
+                                                                        title="Unsuspend">
+                                                                        <i class="fa-solid fa-check"></i>
+                                                                    </button>
+                                                                </form>
+                                                                <% } else { %>
+                                                                    <button type="button" class="btn btn-sm btn-warning"
+                                                                        title="Suspend"
+                                                                        onclick="confirmSuspend(<%= u.id %>, '<%= u.username %>')">
+                                                                        <i class="fa-solid fa-ban"></i>
+                                                                    </button>
+                                                                    <% } %>
+                                                                        <button type="button"
+                                                                            class="btn btn-sm btn-danger" title="Delete"
+                                                                            onclick="confirmDelete(<%= u.id %>, '<%= u.username %>')">
+                                                                            <i class="fa-solid fa-trash"></i>
+                                                                        </button>
+                                                                        <% } %>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suspend Modal -->
+        <div id="suspendModal" class="modal">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-ban"></i> Suspend User</h3>
+                <p>Are you sure you want to suspend <strong id="suspendUsername"></strong>?</p>
+                <form id="suspendForm" method="POST">
+                    <div class="form-group">
+                        <label class="form-label">Reason (optional)</label>
+                        <textarea name="reason" class="form-input" rows="3"
+                            placeholder="Enter reason for suspension..."></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('suspendModal')">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Suspend User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Modal -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <h3><i class="fa-solid fa-trash"></i> Delete User</h3>
+                <p>Are you sure you want to permanently delete <strong id="deleteUsername"></strong>?</p>
+                <p class="warning-text"><i class="fa-solid fa-exclamation-triangle"></i> This will also delete all their
+                    servers and data. This action cannot be undone!</p>
+                <form id="deleteForm" method="POST">
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('deleteModal')">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Delete User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Modal Functions
+            function confirmSuspend(userId, username) {
+                document.getElementById('suspendUsername').textContent = username;
+                document.getElementById('suspendForm').action = `/admin/users/${userId}/suspend`;
+                document.getElementById('suspendModal').style.display = 'flex';
+            }
+
+            function confirmDelete(userId, username) {
+                document.getElementById('deleteUsername').textContent = username;
+                document.getElementById('deleteForm').action = `/admin/users/${userId}/delete`;
+                document.getElementById('deleteModal').style.display = 'flex';
+            }
+
+            function closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function (event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

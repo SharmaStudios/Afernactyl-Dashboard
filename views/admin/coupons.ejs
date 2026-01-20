@@ -1,0 +1,114 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="flex-between mb-4">
+                    <h1 class="page-title"><i class="fa-solid fa-tags"></i> Coupons</h1>
+                    <button class="btn btn-primary" onclick="openModal('createCouponModal')">
+                        <i class="fa-solid fa-plus"></i> New Coupon
+                    </button>
+                </div>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <div class="card card-table">
+                                    <div class="table-wrap">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Code</th>
+                                                    <th>Discount</th>
+                                                    <th>Uses</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% coupons.forEach(function(coupon) { %>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="code-badge">
+                                                                <%= coupon.code %>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <%= coupon.discount_percent %>%
+                                                        </td>
+                                                        <td>
+                                                            <%= coupon.uses %> / <%= coupon.max_uses===0 ? '∞' :
+                                                                    coupon.max_uses %>
+                                                        </td>
+                                                        <td>
+                                                            <% if (coupon.is_active) { %>
+                                                                <span class="status-badge active">Active</span>
+                                                                <% } else { %>
+                                                                    <span class="status-badge inactive">Inactive</span>
+                                                                    <% } %>
+                                                        </td>
+                                                        <td class="action-buttons">
+                                                            <form action="/admin/coupons/delete/<%= coupon.id %>"
+                                                                method="POST"
+                                                                onsubmit="return confirm('Delete this coupon?');">
+                                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                                    <i class="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+            </div>
+
+            <!-- Create Coupon Modal -->
+            <div id="createCouponModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Create Coupon</h2>
+                        <span class="close" onclick="closeModal('createCouponModal')">&times;</span>
+                    </div>
+                    <form action="/admin/coupons/create" method="POST">
+                        <div class="form-group">
+                            <label class="form-label">Coupon Code</label>
+                            <input type="text" name="code" class="form-input" placeholder="e.g. SUMMER25" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Discount Percentage (%)</label>
+                            <input type="number" name="discount" class="form-input" min="1" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Max Uses (0 for infinite)</label>
+                            <input type="number" name="max_uses" class="form-input" value="0" min="0">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Create Coupon</button>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function openModal(id) {
+                    document.getElementById(id).classList.add('active');
+                }
+                function closeModal(id) {
+                    document.getElementById(id).classList.remove('active');
+                }
+                window.onclick = function (event) {
+                    if (event.target.classList.contains('modal')) {
+                        event.target.classList.remove('active');
+                    }
+                }
+            </script>
+
+            <%- include('../partials/footer') %>

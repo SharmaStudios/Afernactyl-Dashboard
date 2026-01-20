@@ -1,0 +1,105 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-pen-to-square"></i> Edit Server</h1>
+                <p class="text-secondary mb-4">Edit local database record for Server #<%= server.id %>
+                </p>
+
+                <% if (error_msg && error_msg.length> 0) { %>
+                    <div class="alert alert-error">
+                        <%= error_msg %>
+                    </div>
+                    <% } %>
+
+                        <div class="card" style="max-width: 600px;">
+                            <form action="/admin/servers/edit/<%= server.id %>" method="POST">
+
+                                <div class="form-group">
+                                    <label class="form-label">Server Name</label>
+                                    <input type="text" class="form-input" value="<%= server.server_name %>" disabled>
+                                    <small class="text-secondary">Name is synced from Pterodactyl</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Owner (User ID)</label>
+                                    <input type="number" name="user_id" class="form-input" value="<%= server.user_id %>"
+                                        required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Plan</label>
+                                    <select name="plan_id" class="form-input">
+                                        <% plans.forEach(function(plan) { %>
+                                            <option value="<%= plan.id %>" <%=server.plan_id===plan.id ? 'selected' : ''
+                                                %>>
+                                                <%= plan.name %> (ID: <%= plan.id %>)
+                                            </option>
+                                            <% }); %>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-input">
+                                        <option value="active" <%=server.status==='active' ? 'selected' : '' %>>Active
+                                        </option>
+                                        <option value="suspended" <%=server.status==='suspended' ? 'selected' : '' %>
+                                            >Suspended</option>
+                                        <option value="cancelled" <%=server.status==='cancelled' ? 'selected' : '' %>
+                                            >Cancelled</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Due Date</label>
+                                    <input type="date" name="renewal_date" class="form-input"
+                                        value="<%= server.renewal_date ? new Date(server.renewal_date).toISOString().split('T')[0] : '' %>">
+                                </div>
+
+                                <div class="flex gap-4 mt-4">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa-solid fa-save"></i> Save Changes
+                                    </button>
+                                    <a href="/admin/servers" class="btn btn-secondary">Cancel</a>
+                                </div>
+                            </form>
+
+                            <hr style="border-color: rgba(255,255,255,0.1); margin: 2rem 0;">
+
+                            <div class="danger-zone">
+                                <h3 style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i>
+                                    Danger Zone</h3>
+                                <p class="text-secondary">These actions are irreversible. Proceed with caution.</p>
+
+                                <div class="flex gap-4 mt-4">
+                                    <form action="/admin/servers/cancel/<%= server.id %>" method="POST"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Cancel this subscription? The server will remain active until due date.');">
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fa-solid fa-ban"></i> Cancel Subscription
+                                        </button>
+                                    </form>
+                                    <form action="/admin/servers/delete/<%= server.id %>" method="POST"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('PERMANENTLY DELETE this server from Pterodactyl AND the database? This cannot be undone!');">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fa-solid fa-trash"></i> Delete Server
+                                        </button>
+                                    </form>
+                                    <form action="/admin/servers/delete/<%= server.id %>?force=true" method="POST"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('FORCE DELETE from Database only? Use this ONLY if the server is already deleted from Pterodactyl Panel.');">
+                                        <button type="submit" class="btn btn-danger"
+                                            style="background: rgba(0,0,0,0.2); border: 1px dashed #ef4444;">
+                                            <i class="fa-solid fa-database"></i> Force DB Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

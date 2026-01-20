@@ -1,0 +1,219 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-handshake-angle"></i> Affiliate Dashboard</h1>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <!-- Your Referral Code -->
+                                <div class="card mb-4">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                        <div>
+                                            <h3 style="margin: 0 0 0.5rem 0;"><i class="fa-solid fa-link mr-2"></i>Your
+                                                Referral Code</h3>
+                                            <p class="text-muted" style="margin: 0;">Share this code with friends. They
+                                                enter it during registration.</p>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <code
+                                                style="font-size: 1.5rem; background: var(--glass-bg); padding: 0.75rem 1.5rem; border-radius: 8px; border: 1px solid var(--glass-border); font-weight: bold; color: var(--color-primary);"><%= affiliate.referral_code %></code>
+                                            <button class="btn btn-primary" onclick="copyCode()">
+                                                <i class="fa-solid fa-copy"></i> Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stats Row -->
+                                <div class="stats-grid">
+                                    <div class="stat-card fade-in">
+                                        <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Available Balance</h3>
+                                            <div class="value" style="color: var(--color-success);">$<%=
+                                                    parseFloat(affiliate.balance).toFixed(2) %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+                                        <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Total Earned</h3>
+                                            <div class="value">$<%= parseFloat(affiliate.total_earned).toFixed(2) %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+                                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Total Referrals</h3>
+                                            <div class="value">
+                                                <%= referrals.length %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card fade-in" style="animation-delay: 0.3s;">
+                                        <div class="stat-icon"><i class="fa-solid fa-percentage"></i></div>
+                                        <div class="stat-info">
+                                            <h3>Commission Rate</h3>
+                                            <div class="value">
+                                                <%= affiliate.commission_rate %>%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <!-- Request Payout -->
+                                    <div class="col-md-5 mb-4">
+                                        <div class="card h-100">
+                                            <h3 style="margin: 0 0 1rem 0;"><i
+                                                    class="fa-solid fa-money-bill-transfer mr-2"></i>Request Payout</h3>
+
+                                            <% if (parseFloat(affiliate.balance) < minPayout) { %>
+                                                <div class="alert"
+                                                    style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3);">
+                                                    <i class="fa-solid fa-info-circle mr-2"></i>
+                                                    Minimum payout is <strong>$<%= minPayout %></strong>. You need $<%=
+                                                        (minPayout - parseFloat(affiliate.balance)).toFixed(2) %> more.
+                                                </div>
+                                                <% } else { %>
+                                                    <form action="/dashboard/affiliates/payout" method="POST">
+                                                        <div class="form-group">
+                                                            <label class="form-label">Amount (USD)</label>
+                                                            <input type="number" name="amount" class="form-control"
+                                                                step="0.01" min="<%= minPayout %>"
+                                                                max="<%= affiliate.balance %>"
+                                                                value="<%= affiliate.balance %>" required>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label class="form-label">Payment Method</label>
+                                                            <select name="payment_method" class="form-control" required>
+                                                                <option value="paypal">PayPal</option>
+                                                                <option value="bank_transfer">Bank Transfer</option>
+                                                                <option value="upi">UPI</option>
+                                                                <option value="credits">Panel Balance</option>
+                                                            </select>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-success btn-block">
+                                                            <i class="fa-solid fa-paper-plane mr-2"></i>Submit Request
+                                                        </button>
+                                                    </form>
+                                                    <% } %>
+                                        </div>
+                                    </div>
+
+                                    <!-- Referred Users -->
+                                    <div class="col-md-7 mb-4">
+                                        <div class="card h-100">
+                                            <h3 style="margin: 0 0 1rem 0;"><i
+                                                    class="fa-solid fa-user-plus mr-2"></i>Your Referrals</h3>
+
+                                            <% if (referrals.length===0) { %>
+                                                <div class="text-center py-4 text-muted">
+                                                    <i class="fa-solid fa-users-slash"
+                                                        style="font-size: 2rem; opacity: 0.4; margin-bottom: 0.75rem;"></i>
+                                                    <p style="margin: 0;">No referrals yet. Share your code to start
+                                                        earning!</p>
+                                                </div>
+                                                <% } else { %>
+                                                    <div class="table-responsive"
+                                                        style="max-height: 250px; overflow-y: auto;">
+                                                        <table class="table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>User</th>
+                                                                    <th>Status</th>
+                                                                    <th>Joined</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <% referrals.forEach(ref=> { %>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <%= ref.username %>
+                                                                        </td>
+                                                                        <td><span class="status-badge active">
+                                                                                <%= ref.status %>
+                                                                            </span></td>
+                                                                        <td class="text-muted">
+                                                                            <%= new
+                                                                                Date(ref.created_at).toLocaleDateString()
+                                                                                %>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <% }); %>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Payout History -->
+                                <% if (payouts.length> 0) { %>
+                                    <div class="card">
+                                        <h3 style="margin: 0 0 1rem 0;"><i
+                                                class="fa-solid fa-clock-rotate-left mr-2"></i>Payout History</h3>
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Amount</th>
+                                                        <th>Method</th>
+                                                        <th>Status</th>
+                                                        <th>Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <% payouts.forEach(payout=> { %>
+                                                        <tr>
+                                                            <td style="font-weight: 600;">$<%=
+                                                                    parseFloat(payout.amount).toFixed(2) %>
+                                                            </td>
+                                                            <td>
+                                                                <%= payout.payment_method %>
+                                                            </td>
+                                                            <td><span class="status-badge <%= payout.status %>">
+                                                                    <%= payout.status %>
+                                                                </span></td>
+                                                            <td class="text-muted">
+                                                                <%= new Date(payout.created_at).toLocaleDateString() %>
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <% } %>
+            </div>
+        </div>
+
+        <script>
+            function copyCode() {
+                navigator.clipboard.writeText('<%= affiliate.referral_code %>');
+                const btn = event.target.closest('button');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                btn.classList.replace('btn-primary', 'btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.replace('btn-success', 'btn-primary');
+                }, 2000);
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

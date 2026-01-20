@@ -1,0 +1,142 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="flex-between mb-4">
+                    <h1 class="page-title"><i class="fa-solid fa-money-bill-transfer"></i> Currencies</h1>
+                    <button class="btn btn-primary" onclick="openModal('addCurrencyModal')">
+                        <i class="fa-solid fa-plus"></i> Add Currency
+                    </button>
+                </div>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <div class="card card-table">
+                                    <div class="table-wrap">
+                                        <table class="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Code</th>
+                                                    <th>Symbol</th>
+                                                    <th>Ex. Rate (to USD)</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% currencies.forEach(function(currency) { %>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="code-badge">
+                                                                <%= currency.code %>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <%= currency.symbol %>
+                                                        </td>
+                                                        <td>1 USD = <%= currency.rate_to_usd %>
+                                                                <%= currency.code %>
+                                                        </td>
+                                                        <td>
+                                                            <% if (currency.is_active) { %>
+                                                                <span class="badge active">Active</span>
+                                                                <% } else { %>
+                                                                    <span class="badge inactive">Inactive</span>
+                                                                    <% } %>
+                                                        </td>
+                                                        <td class="action-buttons">
+                                                            <% if (currency.code !=='USD' ) { %>
+                                                                <form action="/admin/currencies/update" method="POST"
+                                                                    style="display:inline;">
+                                                                    <input type="hidden" name="code"
+                                                                        value="<%= currency.code %>">
+                                                                    <input type="hidden" name="is_active"
+                                                                        value="<%= currency.is_active ? '0' : '1' %>">
+                                                                    <button type="submit"
+                                                                        class="btn btn-sm btn-secondary">
+                                                                        <%= currency.is_active ? 'Disable' : 'Enable' %>
+                                                                    </button>
+                                                                </form>
+                                                                <button class="btn btn-sm btn-primary"
+                                                                    onclick="editCurrency('<%= currency.code %>', '<%= currency.rate_to_usd %>')">
+                                                                    <i class="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <% } else { %>
+                                                                    <span class="text-secondary">Default</span>
+                                                                    <% } %>
+                                                        </td>
+                                                    </tr>
+                                                    <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+            </div>
+
+            <!-- Add Currency Modal -->
+            <div id="addCurrencyModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add Currency</h2>
+                        <span class="close" onclick="closeModal('addCurrencyModal')">&times;</span>
+                    </div>
+                    <form action="/admin/currencies/add" method="POST">
+                        <div class="form-group">
+                            <label class="form-label">Currency Code (ISO 4217)</label>
+                            <input type="text" name="code" class="form-input" placeholder="e.g. GBP" maxlength="3"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Symbol</label>
+                            <input type="text" name="symbol" class="form-input" placeholder="e.g. £" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Exchange Rate (1 USD = X)</label>
+                            <input type="number" name="rate" class="form-input" step="0.0001" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Add Currency</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Edit Currency Modal -->
+            <div id="editCurrencyModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Edit Rate</h2>
+                        <span class="close" onclick="closeModal('editCurrencyModal')">&times;</span>
+                    </div>
+                    <form action="/admin/currencies/edit-rate" method="POST">
+                        <input type="hidden" name="code" id="editCode">
+                        <div class="form-group">
+                            <label class="form-label">Exchange Rate (1 USD = X <span id="editCodeLabel"></span>)</label>
+                            <input type="number" name="rate" id="editRate" class="form-input" step="0.0001" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Update Rate</button>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                function openModal(id) { document.getElementById(id).style.display = 'block'; }
+                function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+                window.onclick = function (e) { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; }
+
+                function editCurrency(code, rate) {
+                    document.getElementById('editCode').value = code;
+                    document.getElementById('editCodeLabel').innerText = code;
+                    document.getElementById('editRate').value = rate;
+                    openModal('editCurrencyModal');
+                }
+            </script>
+            <%- include('../partials/footer') %>

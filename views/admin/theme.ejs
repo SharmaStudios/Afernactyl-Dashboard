@@ -1,0 +1,588 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="page-title">Theme Settings</h1>
+                    <form action="/admin/theme/reset" method="POST"
+                        onsubmit="return confirm('Are you sure you want to reset to default theme?');">
+                        <button type="submit" class="btn btn-danger header-btn">
+                            <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Theme Presets -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-palette"></i> Official Presets</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">Click a preset to instantly apply a professionally designed color
+                            scheme.</p>
+                        <div class="theme-presets-grid">
+                            <!-- Midnight Linear -->
+                            <div class="theme-preset-card" onclick="applyPreset('midnight')" data-preset="midnight">
+                                <div class="preset-preview">
+                                    <div class="preset-color-bar"
+                                        style="background: linear-gradient(135deg, #6366f1, #020617, #0f172a);"></div>
+                                </div>
+                                <div class="preset-info">
+                                    <span class="preset-name">Midnight Linear</span>
+                                    <span class="preset-badge default">Default</span>
+                                </div>
+                            </div>
+
+                            <!-- Deep Space -->
+                            <div class="theme-preset-card" onclick="applyPreset('deepspace')" data-preset="deepspace">
+                                <div class="preset-preview">
+                                    <div class="preset-color-bar"
+                                        style="background: linear-gradient(135deg, #3b82f6, #0b1121, #1e293b);"></div>
+                                </div>
+                                <div class="preset-info">
+                                    <span class="preset-name">Deep Space</span>
+                                </div>
+                            </div>
+
+                            <!-- Obsidian -->
+                            <div class="theme-preset-card" onclick="applyPreset('obsidian')" data-preset="obsidian">
+                                <div class="preset-preview">
+                                    <div class="preset-color-bar"
+                                        style="background: linear-gradient(135deg, #8b5cf6, #000000, #111111);"></div>
+                                </div>
+                                <div class="preset-info">
+                                    <span class="preset-name">Obsidian (Night)</span>
+                                </div>
+                            </div>
+
+                            <!-- Day Mode (Linear Light) -->
+                            <div class="theme-preset-card" onclick="applyPreset('day')" data-preset="day">
+                                <div class="preset-preview">
+                                    <div class="preset-color-bar"
+                                        style="background: linear-gradient(135deg, #4f46e5, #ffffff, #f1f5f9);"></div>
+                                </div>
+                                <div class="preset-info">
+                                    <span class="preset-name">Linear Light</span>
+                                </div>
+                            </div>
+
+                            <!-- Glass OS (New) -->
+                            <div class="theme-preset-card" onclick="applyPreset('glass_os')" data-preset="glass_os">
+                                <div class="preset-preview">
+                                    <div class="preset-color-bar"
+                                        style="background: linear-gradient(135deg, #6366f1, #0f172a, #1e293b);"></div>
+                                    <div
+                                        style="position:absolute; inset:0; backdrop-filter: blur(10px); background: rgba(255,255,255,0.1);">
+                                    </div>
+                                </div>
+                                <div class="preset-info">
+                                    <span class="preset-name">Glass OS 2026</span>
+                                    <span class="preset-badge" style="background:#6366f1; color:white;">NEW</span>
+                                </div>
+                            </div>
+
+                            <!-- Coffee (Warm) -->
+                            <div class="theme-preset-card" onclick="applyPreset('coffee')" data-preset="coffee">
+                                <div class="preset-preview">
+                                    <div class="preset-color-bar"
+                                        style="background: linear-gradient(135deg, #D4A574, #2C1810, #3D2317);"></div>
+                                </div>
+                                <div class="preset-info">
+                                    <span class="preset-name">Coffee</span>
+                                    <span class="preset-badge" style="background:#6F4E37; color:white;">WARM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form action="/admin/theme" method="POST" class="theme-form">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3>Color Palette</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Primary Color -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Primary Color</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="picker-primary"
+                                            value="<%= adminTheme.theme_color_primary || '#6366f1' %>"
+                                            class="color-picker-trigger">
+                                        <input type="text" name="theme_color_primary" id="input-primary"
+                                            class="form-control"
+                                            value="<%= adminTheme.theme_color_primary || '#6366f1' %>">
+                                    </div>
+                                    <small class="text-muted">Main accent color for buttons and links.</small>
+                                </div>
+
+                                <!-- Background Base -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Background Base</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="picker-bg-base"
+                                            value="<%= adminTheme.theme_color_bg_base || '#0f172a' %>"
+                                            class="color-picker-trigger">
+                                        <input type="text" name="theme_color_bg_base" id="input-bg-base"
+                                            class="form-control"
+                                            value="<%= adminTheme.theme_color_bg_base || '#0f172a' %>">
+                                    </div>
+                                    <small class="text-muted">Main page background color.</small>
+                                </div>
+
+                                <!-- Background Surface -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Background Surface</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="picker-bg-surface"
+                                            value="<%= adminTheme.theme_color_bg_surface || '#1e293b' %>"
+                                            class="color-picker-trigger">
+                                        <input type="text" name="theme_color_bg_surface" id="input-bg-surface"
+                                            class="form-control"
+                                            value="<%= adminTheme.theme_color_bg_surface || '#1e293b' %>">
+                                    </div>
+                                    <small class="text-muted">Sidebar and header background color.</small>
+                                </div>
+
+                                <!-- Background Elevated -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Card/Elevated Background</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="picker-bg-elevated"
+                                            value="<%= adminTheme.theme_color_bg_elevated || '#334155' %>"
+                                            class="color-picker-trigger">
+                                        <input type="text" name="theme_color_bg_elevated" id="input-bg-elevated"
+                                            class="form-control"
+                                            value="<%= adminTheme.theme_color_bg_elevated || '#334155' %>">
+                                    </div>
+                                    <small class="text-muted">Background for cards and modals.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3>Typography Colors</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Text Primary -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Primary Text</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="picker-text-primary"
+                                            value="<%= adminTheme.theme_text_primary || '#f8fafc' %>"
+                                            class="color-picker-trigger">
+                                        <input type="text" name="theme_text_primary" id="input-text-primary"
+                                            class="form-control"
+                                            value="<%= adminTheme.theme_text_primary || '#f8fafc' %>">
+                                    </div>
+                                    <small class="text-muted">Main text color.</small>
+                                </div>
+
+                                <!-- Text Secondary -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Secondary Text</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="picker-text-secondary"
+                                            value="<%= adminTheme.theme_text_secondary || '#94a3b8' %>"
+                                            class="color-picker-trigger">
+                                        <input type="text" name="theme_text_secondary" id="input-text-secondary"
+                                            class="form-control"
+                                            value="<%= adminTheme.theme_text_secondary || '#94a3b8' %>">
+                                    </div>
+                                    <small class="text-muted">Muted or subtext color.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- End Color Palette Card -->
+
+                    <!-- New: Effects & Spacing Card -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Effects & Spacing</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Glass Blur -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Glass Blur (px)</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" min="0" max="50" step="1"
+                                            id="range-blur"
+                                            oninput="document.getElementById('theme_glass_blur').value = this.value + 'px'">
+                                        <input type="text" name="theme_glass_blur" id="theme_glass_blur"
+                                            class="form-control" style="width: 80px;"
+                                            value="<%= adminTheme.theme_glass_blur || '20px' %>">
+                                    </div>
+                                    <small class="text-muted">Intensity of the background blur effect.</small>
+                                </div>
+
+                                <!-- Glass Saturation -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Glass Saturation (%)</label>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="range" class="form-range flex-grow-1" min="100" max="200" step="10"
+                                            id="range-saturate"
+                                            oninput="document.getElementById('theme_glass_saturate').value = this.value + '%'">
+                                        <input type="text" name="theme_glass_saturate" id="theme_glass_saturate"
+                                            class="form-control" style="width: 80px;"
+                                            value="<%= adminTheme.theme_glass_saturate || '180%' %>">
+                                    </div>
+                                    <small class="text-muted">Color vibrancy behind the glass.</small>
+                                </div>
+
+                                <!-- Border Radius -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Card Corner Radius</label>
+                                    <select name="theme_radius_lg" id="theme_radius_lg" class="form-control">
+                                        <option value="0px" <%=adminTheme.theme_radius_lg==='0px' ? 'selected' : '' %>
+                                            >Sharp (0px)</option>
+                                        <option value="0.5rem" <%=adminTheme.theme_radius_lg==='0.5rem' ? 'selected'
+                                            : '' %>>Small (0.5rem)</option>
+                                        <option value="1rem" <%=adminTheme.theme_radius_lg==='1rem' ? 'selected' : '' %>
+                                            >Medium (1rem)</option>
+                                        <option value="1.5rem" <%=adminTheme.theme_radius_lg==='1.5rem' ? 'selected'
+                                            : '' %>>Large (1.5rem)</option>
+                                        <option value="2rem" <%=adminTheme.theme_radius_lg==='2rem' ? 'selected' : '' %>
+                                            >Extra Large (2rem)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Font Family (Optional future expansion) -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label">Font Style</label>
+                                    <select class="form-control" disabled>
+                                        <option selected>Inter (Standard)</option>
+                                        <option>Roboto</option>
+                                        <option>Outfit (Modern)</option>
+                                    </select>
+                                    <small class="text-muted">Font selection coming soon.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions mb-5">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-save"></i> Save Theme Settings
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Live Preview Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Component Preview</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <h4 class="mb-3">Buttons</h4>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-primary">Primary Button</button>
+                                <button class="btn btn-secondary">Secondary Button</button>
+                                <button class="btn btn-success">Success Button</button>
+                                <button class="btn btn-danger">Danger Button</button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h4 class="mb-3">Typography</h4>
+                            <style>
+                                .preview-box {
+                                    background-color: var(--bg-surface);
+                                    padding: 1.5rem;
+                                    border-radius: 8px;
+                                    border: 1px solid rgba(255, 255, 255, 0.1);
+                                }
+                            </style>
+                            <div class="preview-box">
+                                <h1>Heading 1</h1>
+                                <h2>Heading 2</h2>
+                                <h3>Heading 3</h3>
+                                <p class="mt-3">This is a paragraph of standard text. It should use the primary text
+                                    color.</p>
+                                <p class="text-muted">This is muted text, which should use the secondary text color.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Real-time CSS Injection
+            const updateCSSVar = (name, value) => {
+                const varName = name.replace('theme_', '--').replace('color_', '').replace(/_/g, '-');
+                document.documentElement.style.setProperty('--' + varName, value);
+
+                // Specific handles for complex variables if needed
+                if (name === 'theme_color_primary') {
+                    document.documentElement.style.setProperty('--color-primary-glow', value + '66'); // 40% opacity
+                }
+            };
+
+            // Link pickers to text inputs
+            const linkPicker = (pickerId, inputId, varName) => {
+                const picker = document.getElementById(pickerId);
+                const input = document.getElementById(inputId);
+
+                if (!picker || !input) return;
+
+                picker.addEventListener('input', (e) => {
+                    input.value = e.target.value;
+                    updateCSSVar(varName, e.target.value);
+                });
+
+                input.addEventListener('input', (e) => {
+                    if (e.target.value.match(/^#(?:[0-9a-fA-F]{3}){1,2}$/i)) {
+                        picker.value = e.target.value;
+                        updateCSSVar(varName, e.target.value);
+                    }
+                });
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                linkPicker('picker-primary', 'input-primary', 'theme_color_primary');
+                linkPicker('picker-bg-base', 'input-bg-base', 'theme_color_bg_base');
+                linkPicker('picker-bg-surface', 'input-bg-surface', 'theme_color_bg_surface');
+                linkPicker('picker-bg-elevated', 'input-bg-elevated', 'theme_color_bg_elevated');
+                linkPicker('picker-text-primary', 'input-text-primary', 'theme_color_text_main');
+                linkPicker('picker-text-secondary', 'input-text-secondary', 'theme_color_text_muted');
+
+                // Sliders
+                document.getElementById('range-blur')?.addEventListener('input', (e) => {
+                    updateCSSVar('theme_glass_blur', e.target.value + 'px');
+                });
+                document.getElementById('range-saturate')?.addEventListener('input', (e) => {
+                    updateCSSVar('theme_glass_saturate', e.target.value + '%');
+                });
+                document.getElementById('theme_radius_lg')?.addEventListener('change', (e) => {
+                    updateCSSVar('theme_radius_lg', e.target.value);
+                });
+            });
+
+            // Theme Presets
+            const presets = {
+                midnight: {
+                    primary: '#6366f1',
+                    bgBase: '#020617',
+                    bgSurface: '#0f172a',
+                    bgElevated: '#1e293b',
+                    textPrimary: '#f8fafc',
+                    textSecondary: '#94a3b8',
+                    glassBg: 'rgba(15, 23, 42, 0.75)',
+                    glassBorder: 'rgba(255, 255, 255, 0.08)',
+                    borderSubtle: 'rgba(148, 163, 184, 0.08)',
+                    borderDefault: 'rgba(148, 163, 184, 0.12)',
+                    shadowSm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+                    shadowCard: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15)',
+                    shadowGlow: '0 0 15px rgba(99, 102, 241, 0.3)'
+                },
+                deepspace: {
+                    primary: '#3b82f6',
+                    bgBase: '#0b1121',
+                    bgSurface: '#161f32',
+                    bgElevated: '#1e293b',
+                    textPrimary: '#f0f9ff',
+                    textSecondary: '#94a3b8',
+                    glassBg: 'rgba(22, 31, 50, 0.8)',
+                    glassBorder: 'rgba(255, 255, 255, 0.1)',
+                    borderSubtle: 'rgba(255, 255, 255, 0.05)',
+                    borderDefault: 'rgba(255, 255, 255, 0.1)',
+                    shadowSm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+                    shadowCard: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15)',
+                    shadowGlow: '0 0 15px rgba(59, 130, 246, 0.3)'
+                },
+                obsidian: { // Night Mode (OLED)
+                    primary: '#ffffff',
+                    bgBase: '#000000',
+                    bgSurface: '#000000',
+                    bgElevated: '#000000',
+                    textPrimary: '#ffffff',
+                    textSecondary: '#a1a1aa',
+                    glassBg: 'rgba(0, 0, 0, 0.9)',
+                    glassBorder: 'rgba(255, 255, 255, 0.2)',
+                    borderSubtle: 'rgba(255, 255, 255, 0.15)',
+                    borderDefault: 'rgba(255, 255, 255, 0.25)',
+                    shadowSm: 'none',
+                    shadowCard: 'none',
+                    shadowGlow: '0 0 10px rgba(255, 255, 255, 0.2)'
+                },
+                day: { // Day Mode (Light)
+                    primary: '#4f46e5', // Deep Indigo for contrast on white
+                    bgBase: '#ffffff',
+                    bgSurface: '#f8fafc',
+                    bgElevated: '#ffffff',
+                    textPrimary: '#0f172a', // Slate 900
+                    textSecondary: '#64748b', // Slate 500
+                    glassBg: 'rgba(255, 255, 255, 0.8)',
+                    glassBorder: 'rgba(0, 0, 0, 0.08)', // Dark borders for light mode
+                    borderSubtle: 'rgba(0, 0, 0, 0.06)',
+                    borderDefault: 'rgba(0, 0, 0, 0.12)',
+                    shadowSm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                    shadowCard: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02)',
+                    shadowGlow: '0 0 15px rgba(79, 70, 229, 0.15)',
+                    glassBlur: '10px',
+                    glassSaturate: '100%',
+                    radiusLg: '0.5rem'
+                },
+                glass_os: { // New Modern Preset
+                    primary: '#6366f1',
+                    bgBase: '#020617',
+                    bgSurface: '#0f172a',
+                    bgElevated: '#1e293b',
+                    textPrimary: '#f8fafc',
+                    textSecondary: '#94a3b8',
+                    glassBg: 'rgba(15, 23, 42, 0.6)', // Adjusted for new bgBase
+                    glassBorder: 'rgba(255, 255, 255, 0.1)',
+                    borderSubtle: 'rgba(255, 255, 255, 0.08)',
+                    borderDefault: 'rgba(255, 255, 255, 0.12)',
+                    shadowSm: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    shadowCard: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                    shadowGlow: '0 0 20px rgba(99, 102, 241, 0.4)',
+                    glassBlur: '20px',
+                    glassSaturate: '180%',
+                    radiusLg: '1.5rem'
+                },
+                coffee: { // Warm Coffee Theme
+                    primary: '#D4A574', // Warm latte gold
+                    bgBase: '#1A0F0A', // Deep espresso
+                    bgSurface: '#2C1810', // Rich coffee brown
+                    bgElevated: '#3D2317', // Mocha
+                    textPrimary: '#F5E6D3', // Cream
+                    textSecondary: '#A89080', // Muted warm gray
+                    glassBg: 'rgba(44, 24, 16, 0.8)',
+                    glassBorder: 'rgba(212, 165, 116, 0.15)',
+                    borderSubtle: 'rgba(212, 165, 116, 0.08)',
+                    borderDefault: 'rgba(212, 165, 116, 0.15)',
+                    shadowSm: '0 1px 2px 0 rgba(0, 0, 0, 0.4)',
+                    shadowCard: '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+                    shadowGlow: '0 0 20px rgba(212, 165, 116, 0.2)',
+                    glassBlur: '16px',
+                    glassSaturate: '150%',
+                    radiusLg: '1rem'
+                }
+            };
+
+            function applyPreset(presetName) {
+                const preset = presets[presetName];
+                if (!preset) return;
+
+                // Update input values
+                document.getElementById('input-primary').value = preset.primary;
+                if (preset.primary) {
+                    document.getElementById('input-primary').value = preset.primary;
+                    document.getElementById('picker-primary').value = preset.primary;
+                    updateCSSVar('theme_color_primary', preset.primary);
+                }
+                if (preset.bgBase) {
+                    document.getElementById('input-bg-base').value = preset.bgBase;
+                    document.getElementById('picker-bg-base').value = preset.bgBase;
+                    updateCSSVar('theme_color_bg_base', preset.bgBase);
+                }
+                if (preset.bgSurface) {
+                    document.getElementById('input-bg-surface').value = preset.bgSurface;
+                    document.getElementById('picker-bg-surface').value = preset.bgSurface;
+                    updateCSSVar('theme_color_bg_surface', preset.bgSurface);
+                }
+                if (preset.bgElevated) {
+                    document.getElementById('input-bg-elevated').value = preset.bgElevated;
+                    document.getElementById('picker-bg-elevated').value = preset.bgElevated;
+                    updateCSSVar('theme_color_bg_elevated', preset.bgElevated);
+                }
+                if (preset.textPrimary) {
+                    document.getElementById('input-text-primary').value = preset.textPrimary;
+                    document.getElementById('picker-text-primary').value = preset.textPrimary;
+                    updateCSSVar('theme_color_text_main', preset.textPrimary);
+                }
+                if (preset.textSecondary) {
+                    document.getElementById('input-text-secondary').value = preset.textSecondary;
+                    document.getElementById('picker-text-secondary').value = preset.textSecondary;
+                    updateCSSVar('theme_color_text_muted', preset.textSecondary);
+                }
+
+                // Update New Effects
+                if (preset.glassBlur) {
+                    document.getElementById('theme_glass_blur').value = preset.glassBlur;
+                    document.getElementById('range-blur').value = parseInt(preset.glassBlur);
+                    document.documentElement.style.setProperty('--glass-blur', preset.glassBlur);
+                }
+                if (preset.glassSaturate) {
+                    document.getElementById('theme_glass_saturate').value = preset.glassSaturate;
+                    document.getElementById('range-saturate').value = parseInt(preset.glassSaturate);
+                    document.documentElement.style.setProperty('--glass-saturate', preset.glassSaturate);
+                }
+                if (preset.radiusLg) {
+                    document.getElementById('theme_radius_lg').value = preset.radiusLg;
+                    document.documentElement.style.setProperty('--radius-lg', preset.radiusLg);
+                }
+
+                // Update Glass & Border CSS Variables (for sidebar and cards)
+                if (preset.glassBg) {
+                    document.documentElement.style.setProperty('--glass-bg', preset.glassBg);
+                    document.documentElement.style.setProperty('--glass-bg-hover', preset.glassBg.replace(/[\d.]+\)$/, (m) => (parseFloat(m) + 0.15).toFixed(2) + ')'));
+                }
+                if (preset.glassBorder) {
+                    document.documentElement.style.setProperty('--glass-border', preset.glassBorder);
+                    document.documentElement.style.setProperty('--glass-border-hover', preset.glassBorder);
+                }
+                if (preset.borderSubtle) {
+                    document.documentElement.style.setProperty('--border-subtle', preset.borderSubtle);
+                }
+                if (preset.borderDefault) {
+                    document.documentElement.style.setProperty('--border-default', preset.borderDefault);
+                }
+                if (preset.shadowCard) {
+                    document.documentElement.style.setProperty('--shadow-lg', preset.shadowCard);
+                }
+                if (preset.shadowGlow) {
+                    document.documentElement.style.setProperty('--shadow-glow', preset.shadowGlow);
+                }
+
+                // Update core color CSS variables
+                if (preset.primary) {
+                    document.documentElement.style.setProperty('--color-primary', preset.primary);
+                    document.documentElement.style.setProperty('--color-primary-glow', preset.primary + '66');
+                }
+                if (preset.bgBase) {
+                    document.documentElement.style.setProperty('--color-bg-base', preset.bgBase);
+                }
+                if (preset.bgSurface) {
+                    document.documentElement.style.setProperty('--color-bg-surface', preset.bgSurface);
+                }
+                if (preset.bgElevated) {
+                    document.documentElement.style.setProperty('--color-bg-elevated', preset.bgElevated);
+                }
+                if (preset.textPrimary) {
+                    document.documentElement.style.setProperty('--color-text-main', preset.textPrimary);
+                }
+                if (preset.textSecondary) {
+                    document.documentElement.style.setProperty('--color-text-muted', preset.textSecondary);
+                }
+
+                // Update active state on cards
+                document.querySelectorAll('.theme-preset-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                document.querySelector(`[data-preset="${presetName}"]`).classList.add('active');
+
+                // Show feedback
+                const btn = document.querySelector('.theme-form .btn-primary');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Preset Applied - Click Save';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-primary');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-primary');
+                }, 2000);
+            }
+        </script>
+
+        <%- include('../partials/footer') %>

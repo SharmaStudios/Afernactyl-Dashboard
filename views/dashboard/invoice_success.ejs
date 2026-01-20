@@ -1,0 +1,233 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="success-page">
+                    <div class="success-icon">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h1>Payment Successful!</h1>
+                    <p class="success-subtitle">Your invoice has been paid successfully.</p>
+
+                    <div class="success-card">
+                        <h3><i class="fa-solid fa-receipt"></i> Invoice Details</h3>
+                        <div class="detail-row">
+                            <span>Invoice Number</span>
+                            <strong>#<%= invoice.id %></strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Description</span>
+                            <strong>
+                                <%= invoice.description || 'Invoice Payment' %>
+                            </strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Amount Paid</span>
+                            <strong class="amount-success">
+                                <%= currency.symbol %>
+                                    <%= parseFloat(invoice.currency_amount || invoice.amount).toFixed(2) %>
+                                        <%= currency.code %>
+                            </strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>Payment Method</span>
+                            <strong>
+                                <% if (paymentMethod==='stripe' ) { %>
+                                    <i class="fa-brands fa-stripe"></i> Stripe
+                                    <% } else if (paymentMethod==='paypal' ) { %>
+                                        <i class="fa-brands fa-paypal"></i> PayPal
+                                        <% } else if (paymentMethod==='phonepe' ) { %>
+                                            <i class="fa-solid fa-mobile-screen-button"></i> PhonePe
+                                            <% } else if (paymentMethod==='credits' ) { %>
+                                                <i class="fa-solid fa-wallet"></i> Account Credits
+                                                <% } else { %>
+                                                    <i class="fa-solid fa-credit-card"></i>
+                                                    <%= paymentMethod || 'Online' %>
+                                                        <% } %>
+                            </strong>
+                        </div>
+                        <% if (transactionId) { %>
+                            <div class="detail-row">
+                                <span>Transaction ID</span>
+                                <strong class="transaction-id">
+                                    <%= transactionId %>
+                                </strong>
+                            </div>
+                            <% } %>
+                                <div class="detail-row">
+                                    <span>Paid On</span>
+                                    <strong>
+                                        <%= new Date().toLocaleDateString('en-US', { dateStyle: 'medium' }) %>
+                                    </strong>
+                                </div>
+                    </div>
+
+                    <% if (serverRenewed) { %>
+                        <div class="success-card renewal-notice">
+                            <i class="fa-solid fa-server"></i>
+                            <div>
+                                <strong>Server Renewed!</strong>
+                                <p>Your server subscription has been extended by <%= typeof billingPeriod !=='undefined'
+                                        && billingPeriod==='weekly' ? '7 days' : typeof billingPeriod !=='undefined' &&
+                                        billingPeriod==='quarterly' ? '90 days' : typeof billingPeriod !=='undefined' &&
+                                        billingPeriod==='yearly' ? '365 days' : '30 days' %>.</p>
+                            </div>
+                        </div>
+                        <% } %>
+
+                            <div class="action-buttons">
+                                <a href="/dashboard/invoices" class="btn btn-secondary">
+                                    <i class="fa-solid fa-file-invoice"></i> View All Invoices
+                                </a>
+                                <a href="/dashboard/servers" class="btn btn-primary">
+                                    <i class="fa-solid fa-server"></i> My Servers
+                                </a>
+                            </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .success-page {
+                max-width: 600px;
+                margin: 0 auto;
+                text-align: center;
+                padding: 2rem 0;
+            }
+
+            .success-icon {
+                width: 120px;
+                height: 120px;
+                margin: 0 auto 2rem;
+                background: linear-gradient(135deg, #10b981, #059669);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: pulse-success 2s ease-in-out infinite;
+                box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+            }
+
+            @keyframes pulse-success {
+
+                0%,
+                100% {
+                    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+                }
+
+                50% {
+                    box-shadow: 0 10px 60px rgba(16, 185, 129, 0.5);
+                }
+            }
+
+            .success-icon i {
+                font-size: 3.5rem;
+                color: white;
+            }
+
+            .success-page h1 {
+                font-size: 2.5rem;
+                color: #10b981;
+                margin-bottom: 0.5rem;
+            }
+
+            .success-subtitle {
+                color: var(--text-secondary);
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+            }
+
+            .success-card {
+                background: var(--bg-card);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 1rem;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                text-align: left;
+            }
+
+            .success-card h3 {
+                color: var(--text-primary);
+                margin-bottom: 1rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .success-card h3 i {
+                color: var(--accent);
+            }
+
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .detail-row:last-child {
+                border-bottom: none;
+            }
+
+            .detail-row span {
+                color: var(--text-secondary);
+            }
+
+            .detail-row strong {
+                color: var(--text-primary);
+            }
+
+            .amount-success {
+                color: #10b981 !important;
+                font-size: 1.1rem;
+            }
+
+            .transaction-id {
+                font-family: 'Fira Code', monospace;
+                font-size: 0.85rem;
+                color: var(--text-secondary) !important;
+            }
+
+            .renewal-notice {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+                border-color: rgba(16, 185, 129, 0.3);
+            }
+
+            .renewal-notice i {
+                font-size: 2rem;
+                color: #10b981;
+            }
+
+            .renewal-notice div {
+                text-align: left;
+            }
+
+            .renewal-notice strong {
+                color: #10b981;
+                display: block;
+                margin-bottom: 0.25rem;
+            }
+
+            .renewal-notice p {
+                margin: 0;
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+
+            .action-buttons {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .action-buttons .btn {
+                padding: 0.875rem 1.5rem;
+            }
+        </style>
+
+        <%- include('../partials/footer') %>

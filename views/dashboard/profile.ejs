@@ -1,0 +1,189 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-user-circle"></i> My Profile</h1>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <!-- Featured Account Information Card -->
+                                <div class="card profile-featured-card">
+                                    <h2><i class="fa-solid fa-id-card"></i> Account Information</h2>
+                                    <div class="profile-header">
+                                        <img src="<%= user.gravatar %>" alt="Avatar" class="profile-avatar">
+                                        <div class="profile-info">
+                                            <h3>
+                                                <%= user.username %>
+                                            </h3>
+                                            <p class="text-secondary">
+                                                <%= user.email %>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="detail-list">
+                                        <div class="detail-row">
+                                            <span class="label"><i class="fa-solid fa-calendar"></i> Member Since</span>
+                                            <span class="value">
+                                                <%= new Date(profileData.created_at).toLocaleDateString() %>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label"><i class="fa-solid fa-globe"></i> Country</span>
+                                            <span class="value">
+                                                <%= profileData.country || 'Not detected' %>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label"><i class="fa-solid fa-money-bill"></i> Preferred
+                                                Currency</span>
+                                            <span class="value">
+                                                <%= profileData.preferred_currency || 'USD' %>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label"><i class="fa-solid fa-wallet"></i> Account
+                                                Balance</span>
+                                            <span class="value balance-amount">$<%= parseFloat(profileData.balance ||
+                                                    0).toFixed(2) %> USD</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Profile Card -->
+                                <div class="card mb-4">
+                                    <h2><i class="fa-solid fa-user-edit"></i> Edit Profile</h2>
+                                    <form action="/dashboard/profile/update-name" method="POST">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">First Name</label>
+                                                    <input type="text" name="first_name" class="form-input"
+                                                        value="<%= user.first_name || '' %>" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Last Name</label>
+                                                    <input type="text" name="last_name" class="form-input"
+                                                        value="<%= user.last_name || '' %>" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa-solid fa-save"></i> Update Name
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Settings Grid -->
+                                <div class="settings-grid">
+
+                                    <!-- Change Password Card -->
+                                    <div class="card">
+                                        <h2><i class="fa-solid fa-key"></i> Change Password</h2>
+                                        <form action="/dashboard/profile/change-password" method="POST">
+                                            <div class="form-group">
+                                                <label class="form-label">Current Password</label>
+                                                <input type="password" name="current_password" class="form-input"
+                                                    required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">New Password</label>
+                                                <input type="password" name="new_password" class="form-input" required
+                                                    minlength="6">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Confirm New Password</label>
+                                                <input type="password" name="confirm_password" class="form-input"
+                                                    required minlength="6">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-block">
+                                                <i class="fa-solid fa-save"></i> Update Password
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Currency Preference Card -->
+                                    <div class="card">
+                                        <h2><i class="fa-solid fa-globe"></i> Currency Preference</h2>
+                                        <form action="/dashboard/profile/update-currency" method="POST">
+                                            <div class="form-group">
+                                                <label class="form-label">Preferred Currency</label>
+                                                <select name="currency" class="form-input">
+                                                    <% availableCurrencies.forEach(function(c) { %>
+                                                        <option value="<%= c.code %>"
+                                                            <%=profileData.preferred_currency===c.code ? 'selected' : ''
+                                                            %>>
+                                                            <%= c.symbol %>
+                                                                <%= c.code %>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-block">
+                                                <i class="fa-solid fa-save"></i> Save Preference
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Panel Password Reset Card -->
+                                    <div class="card panel-card">
+                                        <h2><i class="fa-solid fa-server"></i> Panel Password</h2>
+                                        <p class="text-secondary mb-4">
+                                            Reset your Pterodactyl Panel password. This will update your login
+                                            credentials for the game server panel.
+                                        </p>
+                                        <form action="/dashboard/profile/reset-panel-password" method="POST">
+                                            <div class="form-group">
+                                                <label class="form-label">New Panel Password</label>
+                                                <input type="password" name="panel_password" class="form-input" required
+                                                    minlength="8" placeholder="Minimum 8 characters">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Confirm Panel Password</label>
+                                                <input type="password" name="panel_password_confirm" class="form-input"
+                                                    required minlength="8">
+                                            </div>
+                                            <button type="submit" class="btn btn-secondary btn-block">
+                                                <i class="fa-solid fa-rotate"></i> Reset Panel Password
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Danger Zone Card -->
+                                <div class="card danger-card">
+                                    <h2><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i>
+                                        Account Closure</h2>
+                                    <p class="text-secondary mb-4">
+                                        Requesting account closure will schedule your account for deletion. All
+                                        servers and data will be permanently removed.
+                                    </p>
+                                    <form action="/dashboard/profile/request-closure" method="POST"
+                                        onsubmit="return confirm('Are you sure you want to request account closure? This action cannot be easily undone.');">
+                                        <div class="form-group">
+                                            <label class="form-label">Type "DELETE" to confirm</label>
+                                            <input type="text" name="confirmation" class="form-input"
+                                                placeholder="DELETE" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger btn-block">
+                                            <i class="fa-solid fa-trash"></i> Request Account Closure
+                                        </button>
+                                    </form>
+                                </div>
+            </div>
+        </div>
+        </div>
+
+        <%- include('../partials/footer') %>

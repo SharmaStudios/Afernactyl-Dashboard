@@ -1,0 +1,218 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-credit-card"></i> Pay Invoice #<%= invoice.id %>
+                </h1>
+
+                <div class="payment-grid">
+                    <div class="card invoice-summary">
+                        <h3>Invoice Details</h3>
+                        <div class="invoice-row">
+                            <span>Description:</span>
+                            <strong>
+                                <%= invoice.description || invoice.plan_name || 'Invoice Payment' %>
+                            </strong>
+                        </div>
+                        <div class="invoice-row">
+                            <span>Amount:</span>
+                            <strong class="amount-highlight">
+                                <%= currency.symbol %>
+                                    <%= parseFloat(invoice.currency_amount || invoice.amount).toFixed(2) %>
+                                        <%= currency.code %>
+                            </strong>
+                        </div>
+                        <% if (invoice.due_date) { %>
+                            <div class="invoice-row">
+                                <span>Due Date:</span>
+                                <strong>
+                                    <%= new Date(invoice.due_date).toLocaleDateString() %>
+                                </strong>
+                            </div>
+                            <% } %>
+                                <div class="invoice-row">
+                                    <span>Status:</span>
+                                    <span class="status-badge pending">Pending</span>
+                                </div>
+                    </div>
+
+                    <div class="card payment-methods">
+                        <h3>Select Payment Method</h3>
+                        <form action="/dashboard/invoices/<%= invoice.id %>/pay" method="POST">
+
+                            <% const hasEnoughBalance=userBalance>= parseFloat(invoiceAmountUSD); %>
+
+                                <% if (hasEnoughBalance) { %>
+                                    <label class="payment-option">
+                                        <input type="radio" name="payment_method" value="credits" checked>
+                                        <div class="payment-option-content">
+                                            <i class="fa-solid fa-wallet"></i>
+                                            <div>
+                                                <strong>Account Credits</strong>
+                                                <small>Balance: $<%= parseFloat(userBalance).toFixed(2) %> USD</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                    <% } else { %>
+                                        <div class="payment-option disabled">
+                                            <div class="payment-option-content"
+                                                style="opacity: 0.5; cursor: not-allowed;">
+                                                <i class="fa-solid fa-wallet"></i>
+                                                <div>
+                                                    <strong>Account Credits</strong>
+                                                    <small style="color: var(--text-secondary);">
+                                                        Balance: $<%= parseFloat(userBalance).toFixed(2) %> USD
+                                                            (Need $<%= parseFloat(invoiceAmountUSD).toFixed(2) %>)
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% } %>
+
+                                            <% gateways.forEach(function(gw, index) { %>
+                                                <!-- PhonePe now supports all currencies with auto-conversion -->
+                                                <label class="payment-option">
+                                                    <input type="radio" name="payment_method" value="<%= gw.name %>"
+                                                        <%=(index===0 && !hasEnoughBalance) ? 'checked' : '' %>>
+                                                    <div class="payment-option-content">
+                                                        <% if (gw.name==='stripe' ) { %>
+                                                            <i class="fa-brands fa-stripe"></i>
+                                                            <% } else if (gw.name==='paypal' ) { %>
+                                                                <i class="fa-brands fa-paypal"></i>
+                                                                <% } else if (gw.name==='phonepe' ) { %>
+                                                                    <i class="fa-solid fa-mobile-screen-button"></i>
+                                                                    <% } else { %>
+                                                                        <i class="fa-solid fa-credit-card"></i>
+                                                                        <% } %>
+                                                                            <div>
+                                                                                <strong>
+                                                                                    <%= gw.display_name || gw.name %>
+                                                                                </strong>
+                                                                            </div>
+                                                    </div>
+                                                </label>
+                                                <% }); %>
+
+                                                    <% if (gateways.length===0 && !hasEnoughBalance) { %>
+                                                        <div class="alert alert-danger">
+                                                            <i class="fa-solid fa-circle-exclamation"></i>
+                                                            No payment methods available. Please contact
+                                                            support.
+                                                        </div>
+                                                        <% } else { %>
+                                                            <button type="submit" class="btn btn-primary btn-block">
+                                                                <i class="fa-solid fa-lock"></i> Pay <%= currency.symbol
+                                                                    %>
+                                                                    <%= parseFloat(invoice.currency_amount ||
+                                                                        invoice.amount).toFixed(2) %>
+                                                            </button>
+                                                            <% } %>
+                        </form>
+
+                        <a href="/dashboard/invoices" class="btn btn-secondary btn-block" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-arrow-left"></i> Back to Invoices
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .payment-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+
+            @media (max-width: 768px) {
+                .payment-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .invoice-summary h3,
+            .payment-methods h3 {
+                margin-bottom: 1.5rem;
+                color: var(--text-primary);
+            }
+
+            .invoice-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 0.75rem 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .invoice-row:last-child {
+                border-bottom: none;
+            }
+
+            .invoice-row span {
+                color: var(--text-secondary);
+            }
+
+            .amount-highlight {
+                font-size: 1.25rem;
+                color: var(--accent);
+            }
+
+            .payment-option {
+                display: block;
+                cursor: pointer;
+                margin-bottom: 1rem;
+            }
+
+            .payment-option input {
+                display: none;
+            }
+
+            .payment-option-content {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.02);
+                border: 2px solid rgba(255, 255, 255, 0.1);
+                border-radius: 0.75rem;
+                transition: all 0.2s;
+            }
+
+            .payment-option input:checked+.payment-option-content {
+                border-color: var(--accent);
+                background: rgba(59, 130, 246, 0.1);
+            }
+
+            .payment-option-content i {
+                font-size: 1.5rem;
+                width: 40px;
+                text-align: center;
+                color: var(--accent);
+            }
+
+            .payment-option-content small {
+                display: block;
+                color: var(--text-secondary);
+                font-size: 0.8rem;
+            }
+
+            .btn-block {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .status-badge {
+                padding: 0.25rem 0.75rem;
+                border-radius: 20px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .status-badge.pending {
+                background: rgba(234, 179, 8, 0.2);
+                color: #eab308;
+            }
+        </style>
+
+        <%- include('../partials/footer') %>

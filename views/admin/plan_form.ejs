@@ -1,0 +1,531 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in" style="max-width: 900px; margin: 0 auto;">
+                <h1 class="page-title">
+                    <%= plan ? 'Edit Plan' : 'Create New Plan' %>
+                </h1>
+
+                <% if (error_msg && error_msg.length> 0) { %>
+                    <div class="alert alert-error">
+                        <%= error_msg %>
+                    </div>
+                    <% } %>
+                        <% if (success_msg && success_msg.length> 0) { %>
+                            <div class="alert alert-success">
+                                <%= success_msg %>
+                            </div>
+                            <% } %>
+
+                                <div class="card">
+                                    <form
+                                        action="<%= plan ? '/admin/plans/' + plan.id + '/edit' : '/admin/plans/create' %>"
+                                        method="POST" id="planForm">
+
+                                        <!-- Basic Info -->
+                                        <h3 class="section-title"><i class="fa-solid fa-info-circle"></i> Basic
+                                            Information</h3>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label class="form-label">Plan Name</label>
+                                                <input type="text" name="name" class="form-input"
+                                                    value="<%= plan ? plan.name : '' %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Price (Monthly) - USD</label>
+                                                <input type="number" step="0.01" name="price" class="form-input"
+                                                    value="<%= plan ? plan.price : '' %>" required>
+                                            </div>
+                                            <!-- Regional Pricing Expansion -->
+                                            <div class="form-group" style="grid-column: span 3;">
+                                                <div
+                                                    style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px;">
+                                                    <label class="form-label"
+                                                        style="margin-bottom: 0.5rem; display: block;">Regional Pricing
+                                                        (Optional overrides)</label>
+                                                    <div
+                                                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
+                                                        <% if (typeof currencies !=='undefined' ) { %>
+                                                            <% currencies.forEach(function(curr) { %>
+                                                                <% if (curr.code !=='USD' ) { %>
+                                                                    <div>
+                                                                        <label class="text-secondary"
+                                                                            style="font-size: 0.8rem;">
+                                                                            <%= curr.code %> (<%= curr.symbol %>)
+                                                                        </label>
+                                                                        <input type="number" step="0.01"
+                                                                            name="prices[<%= curr.code %>]"
+                                                                            class="form-input"
+                                                                            placeholder="Auto: <%= (plan ? (plan.price * curr.rate_to_usd).toFixed(2) : '0.00') %>"
+                                                                            value="<%= (plan && plan.prices && plan.prices[curr.code]) ? plan.prices[curr.code] : '' %>">
+                                                                    </div>
+                                                                    <% } %>
+                                                                        <% }); %>
+                                                                            <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Category</label>
+                                                <select name="category_id" class="form-input">
+                                                    <% categories.forEach(cat=> { %>
+                                                        <option value="<%= cat.id %>" <%=plan &&
+                                                            plan.category_id==cat.id ? 'selected' : '' %>><%= cat.name
+                                                                %>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Billing Period</label>
+                                                <select name="billing_period" class="form-input">
+                                                    <option value="weekly" <%=plan && plan.billing_period==='weekly'
+                                                        ? 'selected' : '' %>>Weekly</option>
+                                                    <option value="monthly" <%=(!plan || plan.billing_period==='monthly'
+                                                        ) ? 'selected' : '' %>>Monthly</option>
+                                                    <option value="quarterly" <%=plan &&
+                                                        plan.billing_period==='quarterly' ? 'selected' : '' %>>Quarterly
+                                                    </option>
+                                                    <option value="yearly" <%=plan && plan.billing_period==='yearly'
+                                                        ? 'selected' : '' %>>Yearly</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-input"
+                                                rows="2"><%= plan ? plan.description : '' %></textarea>
+                                        </div>
+
+                                        <!-- Resources -->
+                                        <h3 class="section-title"><i class="fa-solid fa-microchip"></i> Resources</h3>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label class="form-label">RAM (GB)</label>
+                                                <input type="number" step="0.1" name="ram" class="form-input"
+                                                    value="<%= plan ? plan.ram : '' %>" required placeholder="e.g. 4">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">CPU (Cores)</label>
+                                                <input type="number" step="0.1" name="cpu" class="form-input"
+                                                    value="<%= plan ? plan.cpu : '' %>" required placeholder="e.g. 2">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Disk (GB)</label>
+                                                <input type="number" step="0.1" name="disk" class="form-input"
+                                                    value="<%= plan ? plan.disk : '' %>" required placeholder="e.g. 20">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Processor Name (Optional)</label>
+                                            <input type="text" name="processor_name" class="form-input"
+                                                value="<%= plan ? (plan.processor_name || '') : '' %>"
+                                                placeholder="e.g. AMD Ryzen 9 5950X or Intel Xeon E-2288G">
+                                            <small class="text-secondary">Displayed to customers on the store
+                                                page</small>
+                                        </div>
+
+                                        <!-- Limits -->
+                                        <h3 class="section-title"><i class="fa-solid fa-sliders"></i> Limits</h3>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label class="form-label">Extra Ports</label>
+                                                <input type="number" name="allocations" class="form-input"
+                                                    value="<%= plan ? plan.allocations : 0 %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Databases</label>
+                                                <input type="number" name="db_count" class="form-input"
+                                                    value="<%= plan ? plan.db_count : 0 %>" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Backups</label>
+                                                <input type="number" name="backups" class="form-input"
+                                                    value="<%= plan ? plan.backups : 0 %>" required>
+                                            </div>
+                                        </div>
+
+                                        <!-- Pterodactyl Configuration -->
+                                        <h3 class="section-title"><i class="fa-solid fa-egg"></i> Pterodactyl
+                                            Configuration</h3>
+
+                                        <!-- Nest/Egg Selection -->
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label class="form-label">Nest (Category)</label>
+                                                <select name="nest_id" id="nestSelect" class="form-input" required>
+                                                    <option value="">Loading...</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Egg (Server Type)</label>
+                                                <select name="egg_id" id="eggSelect" class="form-input" required>
+                                                    <option value="">Select Nest First</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <small class="text-secondary mb-3" style="display: block;">
+                                            <i class="fa-solid fa-info-circle"></i> Select "Let User Choose" to allow
+                                            customers to pick their own Nest/Egg during checkout.
+                                        </small>
+
+                                        <!-- Docker & Startup -->
+                                        <div class="form-row mt-3">
+                                            <div class="form-group" style="grid-column: span 2;">
+                                                <label class="form-label">
+                                                    <i class="fa-brands fa-docker"></i> Docker Image
+                                                </label>
+                                                <input type="text" name="docker_image" id="dockerImageInput"
+                                                    class="form-input" value="<%= plan ? plan.docker_image : '' %>"
+                                                    placeholder="e.g. ghcr.io/pterodactyl/yolks:java_17">
+                                                <small class="text-secondary">The Docker image to use for server
+                                                    containers (auto-filled when selecting Egg)</small>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="fa-solid fa-terminal"></i> Startup Command
+                                            </label>
+                                            <input type="text" name="startup_cmd" id="startupCmdInput"
+                                                class="form-input" value="<%= plan ? plan.startup_cmd : '' %>"
+                                                placeholder="e.g. java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}">
+                                            <small class="text-secondary">The command to start the server (auto-filled
+                                                when selecting Egg)</small>
+                                        </div>
+
+                                        <!-- Environment Variables -->
+                                        <div id="envSection" style="display: none;">
+                                            <h3 class="section-title"><i class="fa-solid fa-code"></i> Environment
+                                                Variables</h3>
+                                            <p class="text-secondary mb-2">Configure default values. Check "User
+                                                Visible" to allow users to see/edit during checkout.</p>
+                                            <div id="envContainer"></div>
+                                        </div>
+
+                                        <!-- Hidden fields -->
+                                        <input type="hidden" name="environment_config" id="envConfigInput"
+                                            value='<%= plan && plan.environment_config ? plan.environment_config : "{}" %>'>
+                                        <input type="hidden" name="allow_egg_selection" id="allowEggSelectionInput"
+                                            value="<%= plan && plan.allow_egg_selection ? '1' : '0' %>">
+
+                                        <div class="form-group mt-4">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" name="is_out_of_stock" value="1" <%=plan &&
+                                                    plan.is_out_of_stock ? 'checked' : '' %>>
+                                                <i class="fa-solid fa-box-open"></i> Mark as Out of Stock
+                                            </label>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" name="is_visible" value="1" <%=!plan ||
+                                                    plan.is_visible ? 'checked' : '' %>>
+                                                <i class="fa-solid fa-eye"></i> Visible in Store
+                                            </label>
+                                            <small class="text-secondary" style="margin-left: 1.6rem;">Uncheck to hide
+                                                this plan from customers</small>
+                                        </div>
+
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;">
+                                            <div>
+                                                <a href="/admin/plans" class="btn btn-secondary">Cancel</a>
+                                                <% if (plan) { %>
+                                                    <button type="button" class="btn btn-danger"
+                                                        onclick="confirmDelete('<%= plan.id %>')"
+                                                        style="margin-left: 0.5rem;">Delete</button>
+                                                    <% } %>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">
+                                                <%= plan ? 'Save Changes' : 'Create Plan' %>
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <% if (plan) { %>
+                                        <form id="deleteForm-<%= plan.id %>" action="/admin/plans/<%= plan.id %>/delete"
+                                            method="POST" style="display: none;"></form>
+                                        <% } %>
+                                </div>
+            </div>
+        </div>
+
+        <script>
+            const currentNestId = '<%= plan ? plan.nest_id : "" %>';
+            const currentEggId = '<%= plan ? plan.egg_id : "" %>';
+            const currentAllowEggSelection = '<%= plan && plan.allow_egg_selection ? "1" : "0" %>';
+            let savedEnvConfig = {};
+            try {
+                savedEnvConfig = JSON.parse(document.getElementById('envConfigInput').value || '{}');
+            } catch (e) { }
+
+            // Load Nests on page load
+            async function loadNests() {
+                const nestSelect = document.getElementById('nestSelect');
+                try {
+                    const res = await fetch('/admin/api/nests');
+                    const nests = await res.json();
+                    nestSelect.innerHTML = '<option value="">Select Nest</option>';
+
+                    // Add "Let User Choose" option first
+                    const userOpt = document.createElement('option');
+                    userOpt.value = 'user';
+                    userOpt.textContent = '🔓 Let User Choose';
+                    userOpt.style.fontWeight = 'bold';
+                    if (currentAllowEggSelection === '1') userOpt.selected = true;
+                    nestSelect.appendChild(userOpt);
+
+                    // Add separator
+                    const sepOpt = document.createElement('option');
+                    sepOpt.disabled = true;
+                    sepOpt.textContent = '───────────────';
+                    nestSelect.appendChild(sepOpt);
+
+                    // Add actual nests
+                    nests.forEach(nest => {
+                        const opt = document.createElement('option');
+                        opt.value = nest.id;
+                        opt.textContent = nest.name;
+                        if (currentAllowEggSelection !== '1' && nest.id == currentNestId) opt.selected = true;
+                        nestSelect.appendChild(opt);
+                    });
+
+                    // If "Let User Choose" is selected, set egg dropdown accordingly
+                    if (currentAllowEggSelection === '1') {
+                        setUserChooseForEgg();
+                    } else if (currentNestId) {
+                        loadEggs(currentNestId);
+                    }
+                } catch (e) {
+                    nestSelect.innerHTML = '<option value="">Error loading</option>';
+                }
+            }
+
+            // Set egg dropdown to "Let User Choose"
+            function setUserChooseForEgg() {
+                const eggSelect = document.getElementById('eggSelect');
+                eggSelect.innerHTML = '<option value="user" selected>🔓 Let User Choose</option>';
+                // Hide docker/startup fields when user chooses
+                document.getElementById('dockerImageInput').value = '';
+                document.getElementById('startupCmdInput').value = '';
+                document.getElementById('envSection').style.display = 'none';
+            }
+
+            // Load Eggs when Nest changes
+            async function loadEggs(nestId) {
+                const eggSelect = document.getElementById('eggSelect');
+
+                // If "Let User Choose" is selected for nest, force it for egg too
+                if (nestId === 'user') {
+                    setUserChooseForEgg();
+                    return;
+                }
+
+                eggSelect.innerHTML = '<option value="">Loading...</option>';
+                try {
+                    const res = await fetch('/admin/api/eggs/' + nestId);
+                    const eggs = await res.json();
+                    eggSelect.innerHTML = '<option value="">Select Egg</option>';
+
+                    // Add "Let User Choose" option first
+                    const userOpt = document.createElement('option');
+                    userOpt.value = 'user';
+                    userOpt.textContent = '🔓 Let User Choose';
+                    userOpt.style.fontWeight = 'bold';
+                    eggSelect.appendChild(userOpt);
+
+                    // Add separator
+                    const sepOpt = document.createElement('option');
+                    sepOpt.disabled = true;
+                    sepOpt.textContent = '───────────────';
+                    eggSelect.appendChild(sepOpt);
+
+                    // Add actual eggs
+                    eggs.forEach(egg => {
+                        const opt = document.createElement('option');
+                        opt.value = egg.id;
+                        opt.textContent = egg.name;
+                        if (egg.id == currentEggId) opt.selected = true;
+                        eggSelect.appendChild(opt);
+                    });
+                    if (currentEggId) loadEggVariables(nestId, currentEggId);
+                } catch (e) {
+                    eggSelect.innerHTML = '<option value="">Error</option>';
+                }
+            }
+
+            // Load Egg Variables
+            async function loadEggVariables(nestId, eggId) {
+                // Don't load if "user" mode
+                if (nestId === 'user' || eggId === 'user') {
+                    document.getElementById('envSection').style.display = 'none';
+                    return;
+                }
+
+                const envSection = document.getElementById('envSection');
+                const envContainer = document.getElementById('envContainer');
+
+                try {
+                    const res = await fetch(`/admin/api/egg/${nestId}/${eggId}/variables`);
+                    const data = await res.json();
+
+                    // Set Docker Image and Startup
+                    const dockerInput = document.getElementById('dockerImageInput');
+                    const startupInput = document.getElementById('startupCmdInput');
+
+                    if (data.docker_images) {
+                        const images = Object.values(data.docker_images);
+                        if (images.length > 0 && !dockerInput.value) {
+                            dockerInput.value = images[0];
+                        }
+                    }
+                    if (data.startup && !startupInput.value) {
+                        startupInput.value = data.startup;
+                    }
+
+                    // Build Environment UI
+                    envContainer.innerHTML = '';
+                    if (data.variables && data.variables.length > 0) {
+                        envSection.style.display = 'block';
+                        data.variables.forEach(v => {
+                            const saved = savedEnvConfig[v.env_variable] || {};
+                            const value = saved.value !== undefined ? saved.value : v.default_value;
+                            const userVisible = saved.user_visible !== undefined ? saved.user_visible : v.user_viewable;
+
+                            const row = document.createElement('div');
+                            row.className = 'env-row';
+                            row.innerHTML = `
+                                <div class="env-name" title="${v.env_variable}">${v.name}</div>
+                                <input type="text" class="env-input" data-env="${v.env_variable}" value="${value || ''}">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="env-visible" data-env="${v.env_variable}" ${userVisible ? 'checked' : ''}>
+                                    User Visible
+                                </label>
+                            `;
+                            envContainer.appendChild(row);
+                        });
+                    } else {
+                        envSection.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.error('Error loading env vars:', e);
+                }
+            }
+
+            // Event Listeners
+            document.getElementById('nestSelect').addEventListener('change', (e) => {
+                if (e.target.value === 'user') {
+                    // Force egg to "Let User Choose" when nest is set to it
+                    setUserChooseForEgg();
+                } else if (e.target.value) {
+                    loadEggs(e.target.value);
+                    // Clear docker/startup when changing nest
+                    document.getElementById('dockerImageInput').value = '';
+                    document.getElementById('startupCmdInput').value = '';
+                } else {
+                    document.getElementById('eggSelect').innerHTML = '<option value="">Select Nest First</option>';
+                    document.getElementById('envSection').style.display = 'none';
+                }
+            });
+
+            document.getElementById('eggSelect').addEventListener('change', (e) => {
+                const nestId = document.getElementById('nestSelect').value;
+                if (e.target.value === 'user') {
+                    // User choose mode - clear fields
+                    document.getElementById('dockerImageInput').value = '';
+                    document.getElementById('startupCmdInput').value = '';
+                    document.getElementById('envSection').style.display = 'none';
+                } else if (e.target.value && nestId && nestId !== 'user') {
+                    // Clear and reload docker/startup for new egg
+                    document.getElementById('dockerImageInput').value = '';
+                    document.getElementById('startupCmdInput').value = '';
+                    loadEggVariables(nestId, e.target.value);
+                }
+            });
+
+            // Before Submit: Collect Environment Config and set allow_egg_selection
+            document.getElementById('planForm').addEventListener('submit', (e) => {
+                const envConfig = {};
+                document.querySelectorAll('.env-input').forEach(input => {
+                    const envVar = input.dataset.env;
+                    const visible = document.querySelector(`.env-visible[data-env="${envVar}"]`);
+                    envConfig[envVar] = {
+                        value: input.value,
+                        user_visible: visible ? visible.checked : false
+                    };
+                });
+                document.getElementById('envConfigInput').value = JSON.stringify(envConfig);
+
+                // Set allow_egg_selection based on dropdown values
+                const nestVal = document.getElementById('nestSelect').value;
+                const eggVal = document.getElementById('eggSelect').value;
+                document.getElementById('allowEggSelectionInput').value = (nestVal === 'user' || eggVal === 'user') ? '1' : '0';
+            });
+
+            // Delete confirmation
+            function confirmDelete(id) {
+                if (confirm('Are you sure you want to delete this plan?')) {
+                    document.getElementById('deleteForm-' + id).submit();
+                }
+            }
+
+            // Init
+            loadNests();
+        </script>
+
+        <style>
+            .config-mode-toggle {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+
+            .radio-toggle {
+                cursor: pointer;
+            }
+
+            .radio-toggle input[type="radio"] {
+                display: none;
+            }
+
+            .radio-toggle .toggle-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.6rem 1.2rem;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+            }
+
+            .radio-toggle input[type="radio"]:checked+.toggle-btn {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: white;
+                box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+            }
+
+            .radio-toggle:hover .toggle-btn {
+                border-color: var(--accent);
+            }
+
+            .badge-info {
+                background: rgba(59, 130, 246, 0.2);
+                color: #3b82f6;
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+            }
+
+            .badge-secondary {
+                background: rgba(148, 163, 184, 0.2);
+                color: var(--text-secondary);
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+            }
+        </style>
+
+        <%- include('../partials/footer') %>

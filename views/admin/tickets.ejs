@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title">Support Tickets</h1>
+
+                <div class="card card-table">
+                    <% if (tickets.length===0) { %>
+                        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">No support tickets
+                            found.</div>
+                        <% } else { %>
+                            <div class="table-wrap">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Subject</th>
+                                            <th>User</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% tickets.forEach(t=> { %>
+                                            <tr>
+                                                <td>#<%= t.id %>
+                                                </td>
+                                                <td>
+                                                    <%= t.subject %>
+                                                </td>
+                                                <td>
+                                                    <%= t.username %>
+                                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                                            <%= t.email %>
+                                                        </div>
+                                                </td>
+                                                <td>
+                                                    <% const statusMap={ 'open' : { class: 'badge-info' , label: 'Open'
+                                                        }, 'awaiting_reply' : { class: 'badge-warning' ,
+                                                        label: 'Awaiting Reply' }, 'in_progress' : {
+                                                        class: 'badge-purple' , label: 'In Progress'
+                                                        }, 'awaiting_customer' : { class: 'badge-orange' ,
+                                                        label: 'Awaiting Customer' }, 'resolved' : {
+                                                        class: 'badge-success' , label: 'Resolved' }, 'closed' : {
+                                                        class: 'badge-danger' , label: 'Closed' } }; const
+                                                        status=statusMap[t.status] || { class: 'badge-secondary' ,
+                                                        label: t.status }; %>
+                                                        <span class="badge <%= status.class %>">
+                                                            <%= status.label %>
+                                                        </span>
+                                                </td>
+                                                <td>
+                                                    <%= new Date(t.created_at).toLocaleDateString() %>
+                                                </td>
+                                                <td>
+                                                    <!-- Use dashboard route that is now Admin-accessible -->
+                                                    <a href="/dashboard/tickets/<%= t.id %>"
+                                                        class="btn btn-sm btn-primary">View</a>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } %>
+                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

@@ -1,0 +1,136 @@
+<%- include('../../partials/header') %>
+    <%- include('../../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                    <h1 class="page-title" style="margin:0;">Support Tickets</h1>
+                    <a href="/dashboard/tickets/create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Open
+                        Ticket</a>
+                </div>
+
+                <div class="card">
+                    <% if (tickets.length===0) { %>
+                        <div class="empty-list">
+                            <i class="fa-solid fa-ticket-simple"></i>
+                            <p>No support tickets yet.</p>
+                        </div>
+                        <% } else { %>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Subject</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% tickets.forEach(t=> { %>
+                                            <tr>
+                                                <td>#<%= t.id %>
+                                                </td>
+                                                <td>
+                                                    <%= t.subject %>
+                                                </td>
+                                                <td>
+                                                    <span
+                                                        class="badge badge-<%= t.status === 'closed' ? 'secondary' : 'success' %>">
+                                                        <%= t.status %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <%= new Date(t.created_at).toLocaleDateString() %>
+                                                </td>
+                                                <td style="text-align: right;">
+                                                    <a href="/dashboard/tickets/<%= t.id %>"
+                                                        class="btn btn-sm btn-secondary">View</a>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } %>
+                </div>
+            </div>
+
+            <style>
+                .card {
+                    overflow: hidden;
+                    padding: 0;
+                }
+
+                .table-responsive {
+                    width: 100%;
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                    margin: 0;
+                }
+
+                .data-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    table-layout: auto;
+                }
+
+                .data-table th,
+                .data-table td {
+                    padding: 1.25rem 1rem;
+                    text-align: left;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    color: var(--text-secondary);
+                }
+
+                .data-table th {
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.05em;
+                    color: var(--text-secondary);
+                }
+
+                .data-table tr:hover td {
+                    background: rgba(255, 255, 255, 0.02);
+                    color: white;
+                }
+
+                .badge {
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 99px;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                }
+
+                .badge-success {
+                    background: rgba(16, 185, 129, 0.2);
+                    color: var(--success);
+                }
+
+                .badge-secondary {
+                    background: rgba(148, 163, 184, 0.2);
+                    color: var(--text-secondary);
+                }
+
+                .empty-list {
+                    padding: 4rem;
+                    text-align: center;
+                    color: var(--text-secondary);
+                }
+
+                .empty-list i {
+                    font-size: 2.5rem;
+                    margin-bottom: 1rem;
+                    opacity: 0.5;
+                }
+
+                .btn-sm {
+                    padding: 0.4rem 0.8rem;
+                    font-size: 0.85rem;
+                }
+            </style>
+
+            <%- include('../../partials/footer') %>

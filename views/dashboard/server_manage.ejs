@@ -1,0 +1,141 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title"><i class="fa-solid fa-server"></i> Manage Server</h1>
+                <p class="text-secondary mb-4">Manage subscription for <%= server.server_name %>
+                </p>
+
+                <% if (error_msg && error_msg.length> 0) { %>
+                    <div class="alert alert-error">
+                        <%= error_msg %>
+                    </div>
+                    <% } %>
+                        <% if (success_msg && success_msg.length> 0) { %>
+                            <div class="alert alert-success">
+                                <%= success_msg %>
+                            </div>
+                            <% } %>
+
+                                <div class="grid-2">
+                                    <div class="card">
+                                        <h2><i class="fa-solid fa-info-circle"></i> Service Details</h2>
+                                        <div class="detail-row">
+                                            <span class="label">Status</span>
+                                            <span class="value"><span class="status-badge <%= server.status %>">
+                                                    <%= server.status %>
+                                                </span></span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Plan</span>
+                                            <span class="value">
+                                                <%= server.plan_name %>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Created Date</span>
+                                            <span class="value">
+                                                <%= new Date(server.created_at).toLocaleDateString() %>
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">Due Date</span>
+                                            <span class="value">
+                                                <%= server.renewal_date ? new
+                                                    Date(server.renewal_date).toLocaleDateString() : 'N/A' %>
+                                            </span>
+                                        </div>
+
+                                        <% if (server.status !=='failed' && server.ptero_identifier) { %>
+                                            <div class="mt-4">
+                                                <a href="<%= panelUrl %>/server/<%= server.ptero_identifier %>"
+                                                    target="_blank" class="btn btn-primary btn-block">
+                                                    <i class="fa-solid fa-external-link"></i> Go to Panel
+                                                </a>
+                                            </div>
+                                            <% } %>
+                                    </div>
+
+                                    <div class="card danger-card">
+                                        <h2><i class="fa-solid fa-triangle-exclamation"
+                                                style="color: var(--danger);"></i> Subscription</h2>
+                                        <p class="text-secondary mb-4">
+                                            Cancelling your subscription stops future billing. Your server remains
+                                            active until the due date.
+                                        </p>
+
+                                        <% if (server.status==='active' ) { %>
+                                            <form action="/dashboard/servers/cancel/<%= server.id %>" method="POST"
+                                                onsubmit="return confirm('Cancel subscription? Server stays active until due date.');">
+                                                <button type="submit" class="btn btn-warning btn-block">
+                                                    <i class="fa-solid fa-ban"></i> Cancel Subscription
+                                                </button>
+                                            </form>
+                                            <% } else if (server.status==='cancelled' ) { %>
+                                                <div class="alert alert-warning">
+                                                    <i class="fa-solid fa-info-circle"></i> Subscription cancelled.
+                                                    Server will not renew.
+                                                </div>
+                                                <% } else if (server.status==='suspended' ) { %>
+                                                    <div class="alert alert-error">
+                                                        <i class="fa-solid fa-exclamation-triangle"></i> Server
+                                                        suspended. Please renew or contact support.
+                                                        <br><small>Server will be deleted 7 days after
+                                                            suspension.</small>
+                                                    </div>
+                                                    <% } else if (server.status==='failed' ) { %>
+                                                        <div class="failed-server-notice">
+                                                            <div class="alert alert-warning"
+                                                                style="margin-bottom: 1rem;">
+                                                                <h3 style="margin: 0 0 0.5rem 0;"><i
+                                                                        class="fa-solid fa-clock"></i> Server
+                                                                    Provisioning
+                                                                    Delayed</h3>
+                                                                <p style="margin: 0;">We're experiencing temporary
+                                                                    issues
+                                                                    provisioning your server. Our team has been
+                                                                    automatically notified.</p>
+                                                            </div>
+
+                                                            <div class="info-box"
+                                                                style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                                                                <p style="margin: 0 0 0.5rem 0;"><i
+                                                                        class="fa-solid fa-check"
+                                                                        style="color: #22c55e;"></i> Your server will be
+                                                                    created within 24 hours</p>
+                                                                <p style="margin: 0 0 0.5rem 0;"><i
+                                                                        class="fa-solid fa-check"
+                                                                        style="color: #22c55e;"></i> If not resolved,
+                                                                    you'll
+                                                                    receive a full refund automatically</p>
+                                                                <p style="margin: 0;"><i class="fa-solid fa-check"
+                                                                        style="color: #22c55e;"></i> Contact support for
+                                                                    assistance or immediate refund</p>
+                                                            </div>
+
+                                                            <div class="failed-actions"
+                                                                style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                                                <form action="/dashboard/servers/<%= server.id %>/retry"
+                                                                    method="POST" style="flex: 1;">
+                                                                    <button type="submit"
+                                                                        class="btn btn-primary btn-block">
+                                                                        <i class="fa-solid fa-rotate"></i> Retry
+                                                                        Creation
+                                                                    </button>
+                                                                </form>
+                                                                <a href="/dashboard/tickets/new"
+                                                                    class="btn btn-secondary btn-block"
+                                                                    style="flex: 1;">
+                                                                    <i class="fa-solid fa-headset"></i> Create Support
+                                                                    Ticket
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+                                    </div>
+                                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

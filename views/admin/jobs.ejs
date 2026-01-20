@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <h1 class="page-title">Scheduler Jobs</h1>
+
+                <div class="jobs-grid">
+                    <% jobs.forEach(function(job) { %>
+                        <div class="job-card">
+                            <div class="job-header">
+                                <div class="job-icon">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                </div>
+                                <div class="job-meta">
+                                    <h3>
+                                        <%= job.name %>
+                                    </h3>
+                                    <span class="schedule-badge">
+                                        <i class="fa-regular fa-clock"></i>
+                                        <%= job.schedule %>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="job-body">
+                                <p>
+                                    <%= job.description %>
+                                </p>
+                                <div class="job-script">
+                                    <code><%= job.script %></code>
+                                </div>
+                            </div>
+
+                            <div class="job-footer">
+                                <form action="/admin/jobs/run" method="POST"
+                                    onsubmit="return confirm('Are you sure you want to run this job manually?');">
+                                    <input type="hidden" name="job_id" value="<%= job.id %>">
+                                    <button type="submit" class="btn btn-primary run-btn">
+                                        <i class="fa-solid fa-play"></i> Run Now
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <% }); %>
+                </div>
+            </div>
+        </div>
+
+
+
+            <%- include('../partials/footer') %>

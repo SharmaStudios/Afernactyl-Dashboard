@@ -1,0 +1,611 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title"><i class="fa-solid fa-file-invoice-dollar"></i> Invoices</h1>
+                        <p class="text-muted">Manage all invoices and payments.</p>
+                    </div>
+                    <div class="header-actions">
+                        <form action="/admin/invoices/clear-all" method="POST"
+                            onsubmit="return confirm('⚠️ WARNING: This will permanently delete ALL invoices!\n\nAre you absolutely sure?');"
+                            style="display: inline;">
+                            <button type="submit" class="btn btn-danger is-small">
+                                <i class="fa-solid fa-trash"></i> Clear All
+                            </button>
+                        </form>
+                        <button class="btn btn-primary is-small" onclick="openInvoiceModal()">
+                            <i class="fa-solid fa-plus"></i> Create Invoice
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Create Invoice Modal -->
+                <div id="invoiceModal" class="modal">
+                    <div class="modal-content glass-panel">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Create Custom Invoice</h3>
+                            <button type="button" class="close-btn" onclick="closeInvoiceModal()"><i
+                                    class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <form action="/admin/invoices/create" method="POST">
+                            <div class="form-group">
+                                <label class="form-label">Select User</label>
+                                <select name="user_id" class="form-input" required>
+                                    <option value="">-- Select User --</option>
+                                    <% if (typeof users !=='undefined' ) { %>
+                                        <% users.forEach(function(u) { %>
+                                            <option value="<%= u.id %>">
+                                                <%= u.username %> (<%= u.email %>)
+                                            </option>
+                                            <% }); %>
+                                                <% } %>
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Amount</label>
+                                        <input type="number" step="0.01" name="amount" class="form-input"
+                                            placeholder="0.00" required>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label class="form-label">Currency</label>
+                                        <select name="currency_code" class="form-input">
+                                            <option value="USD">USD</option>
+                                            <option value="INR">INR</option>
+                                            <option value="EUR">EUR</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Description / Reason</label>
+                                <textarea name="description" class="form-input" rows="3"
+                                    placeholder="e.g. Additional support fee, Manual Top-up..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Due Date (Optional)</label>
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <input type="date" name="due_date" id="dueDateInput" class="form-input"
+                                        style="flex: 1;">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="noDueDate" name="no_due_date"
+                                            onchange="toggleDueDate(this)">
+                                        <span class="checkmark"></span>
+                                        <span class="text-secondary">No due date</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Link to Server (Optional)</label>
+                                <select name="server_id" id="serverSelect" class="form-input">
+                                    <option value="">-- No Server (Custom Invoice) --</option>
+                                    <% if (typeof servers !=='undefined' ) { %>
+                                        <% servers.forEach(function(s) { %>
+                                            <option value="<%= s.id %>" data-user-id="<%= s.user_id %>">
+                                                <%= s.server_name %> (Owner: <%= s.username %>)
+                                            </option>
+                                            <% }); %>
+                                                <% } %>
+                                </select>
+                                <small class="text-muted" style="display: block; margin-top: 0.5rem;">Linking to a
+                                    server will update its renewal date when this
+                                    invoice is paid.</small>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" onclick="closeInvoiceModal()"
+                                    class="btn btn-ghost">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Create Invoice</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card card-table">
+                    <div class="table-wrap">
+                        <table class="data-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Invoice ID</th>
+                                    <th>User</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Paid Via</th>
+                                    <th>Transaction ID</th>
+                                    <th>Status</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (invoices.length===0) { %>
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">No invoices found.</td>
+                                    </tr>
+                                    <% } %>
+                                        <% invoices.forEach(function(inv) { %>
+                                            <tr>
+                                                <td><span class="font-mono">#<%= inv.id %></span></td>
+                                                <td>
+                                                    <div class="user-info">
+                                                        <div class="user-avatar-sm"
+                                                            style="background-color: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-size: 0.7rem;">
+                                                            <%= (inv.username || 'U' ).charAt(0).toUpperCase() %>
+                                                        </div>
+                                                        <span>
+                                                            <%= inv.username || 'User #' + inv.user_id %>
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <%= inv.description || inv.plan_name || 'N/A' %>
+                                                </td>
+                                                <td class="amount font-mono">
+                                                    <% if (inv.currency_code && inv.currency_code !=='USD' ) { %>
+                                                        <%= inv.currency_code %>
+                                                            <%= parseFloat(inv.currency_amount).toFixed(2) %>
+                                                                <div class="text-xs text-muted">($<%=
+                                                                        parseFloat(inv.amount).toFixed(2) %>)</div>
+                                                                <% } else { %>
+                                                                    $<%= parseFloat(inv.amount).toFixed(2) %>
+                                                                        <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if (inv.due_date) { %>
+                                                        <% const isOverdue=new Date(inv.due_date) < new Date() &&
+                                                            inv.status==='pending' ; %>
+                                                            <span class="<%= isOverdue ? 'text-danger' : '' %>">
+                                                                <%= new Date(inv.due_date).toLocaleDateString() %>
+                                                            </span>
+                                                            <% if (isOverdue) { %>
+                                                                <div class="badge badge-danger is-small">OVERDUE</div>
+                                                                <% } %>
+                                                                    <% } else { %>
+                                                                        <span class="text-muted">N/A</span>
+                                                                        <% } %>
+                                                </td>
+                                                <td>
+                                                    <% if (inv.status==='paid' || inv.status==='refunded' ) { %>
+                                                        <% if (inv.payment_method==='credits' ) { %>
+                                                            <span class="badge badge-info"><i
+                                                                    class="fa-solid fa-wallet"></i> Credits</span>
+                                                            <% } else if (inv.payment_method==='phonepe' ) { %>
+                                                                <span class="badge badge-purple"><i
+                                                                        class="fa-solid fa-mobile-screen-button"></i>
+                                                                    PhonePe</span>
+                                                                <% } else if (inv.payment_method==='stripe' ) { %>
+                                                                    <span class="badge badge-primary"><i
+                                                                            class="fa-brands fa-stripe"></i>
+                                                                        Stripe</span>
+                                                                    <% } else if (inv.payment_method==='admin' ) { %>
+                                                                        <span class="badge badge-warning"><i
+                                                                                class="fa-solid fa-shield-halved"></i>
+                                                                            Admin</span>
+                                                                        <% } else { %>
+                                                                            <span class="badge badge-secondary">
+                                                                                <%= inv.payment_method || 'N/A' %>
+                                                                            </span>
+                                                                            <% } %>
+                                                                                <% } else { %>
+                                                                                    <span class="text-muted">—</span>
+                                                                                    <% } %>
+                                                </td>
+                                                <td class="font-mono text-xs">
+                                                    <% if (inv.transaction_id) { %>
+                                                        <span title="<%= inv.transaction_id %>">
+                                                            <%= inv.transaction_id.length> 12 ?
+                                                                inv.transaction_id.slice(0, 12) + '...' :
+                                                                inv.transaction_id %>
+                                                        </span>
+                                                        <% } else { %>
+                                                            <span class="text-muted">—</span>
+                                                            <% } %>
+                                                </td>
+                                                <td>
+                                                    <form action="/admin/invoices/<%= inv.id %>/status" method="POST"
+                                                        class="status-form">
+                                                        <select name="status"
+                                                            class="form-select is-small status-select <%= inv.status %>"
+                                                            onchange="this.form.submit()">
+                                                            <option value="pending" <%=inv.status==='pending'
+                                                                ? 'selected' : '' %>>Pending</option>
+                                                            <option value="paid" <%=inv.status==='paid' ? 'selected'
+                                                                : '' %>>Paid</option>
+                                                            <option value="cancelled" <%=inv.status==='cancelled'
+                                                                ? 'selected' : '' %>>Cancelled</option>
+                                                            <option value="refunded" <%=inv.status==='refunded'
+                                                                ? 'selected' : '' %>>Refunded</option>
+                                                        </select>
+                                                    </form>
+                                                </td>
+                                                <td class="text-right">
+                                                    <div class="action-buttons">
+                                                        <a href="/admin/invoices/<%= inv.id %>" target="_blank"
+                                                            class="btn btn-icon btn-ghost" title="View Invoice">
+                                                            <i class="fa-solid fa-eye"></i>
+                                                        </a>
+                                                        <form action="/admin/invoices/<%= inv.id %>/delete"
+                                                            method="POST"
+                                                            onsubmit="return confirm('Delete invoice #<%= inv.id %>? This cannot be undone.');"
+                                                            style="display:inline;">
+                                                            <button type="submit"
+                                                                class="btn btn-icon btn-ghost text-danger"
+                                                                title="Delete Invoice">
+                                                                <i class="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <% if (pagination && pagination.totalPages> 1) { %>
+                        <div class="pagination-container">
+                            <div class="pagination-info text-muted text-sm">
+                                Showing <%= ((pagination.currentPage - 1) * pagination.limit) + 1 %> - <%=
+                                        Math.min(pagination.currentPage * pagination.limit, pagination.totalItems) %> of
+                                        <%= pagination.totalItems %> invoices
+                            </div>
+                            <div class="pagination-controls">
+                                <% if (pagination.hasPrev) { %>
+                                    <a href="/admin/invoices?page=<%= pagination.currentPage - 1 %>&limit=<%= pagination.limit %>"
+                                        class="btn btn-icon btn-ghost">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </a>
+                                    <% } else { %>
+                                        <button class="btn btn-icon btn-ghost" disabled><i
+                                                class="fa-solid fa-chevron-left"></i></button>
+                                        <% } %>
+
+                                            <% const startPage=Math.max(1, pagination.currentPage - 2); const
+                                                endPage=Math.min(pagination.totalPages, pagination.currentPage + 2); %>
+
+                                                <% if (startPage> 1) { %>
+                                                    <a href="/admin/invoices?page=1&limit=<%= pagination.limit %>"
+                                                        class="btn btn-icon btn-ghost">1</a>
+                                                    <% if (startPage> 2) { %><span class="pagination-dots">...</span>
+                                                        <% } %>
+                                                            <% } %>
+
+                                                                <% for (let i=startPage; i <=endPage; i++) { %>
+                                                                    <a href="/admin/invoices?page=<%= i %>&limit=<%= pagination.limit %>"
+                                                                        class="btn btn-icon <%= i === pagination.currentPage ? 'btn-primary' : 'btn-ghost' %>">
+                                                                        <%= i %>
+                                                                    </a>
+                                                                    <% } %>
+
+                                                                        <% if (endPage < pagination.totalPages) { %>
+                                                                            <% if (endPage < pagination.totalPages - 1)
+                                                                                { %><span
+                                                                                    class="pagination-dots">...</span>
+                                                                                <% } %>
+                                                                                    <a href="/admin/invoices?page=<%= pagination.totalPages %>&limit=<%= pagination.limit %>"
+                                                                                        class="btn btn-icon btn-ghost">
+                                                                                        <%= pagination.totalPages %>
+                                                                                    </a>
+                                                                                    <% } %>
+
+                                                                                        <% if (pagination.hasNext) { %>
+                                                                                            <a href="/admin/invoices?page=<%= pagination.currentPage + 1 %>&limit=<%= pagination.limit %>"
+                                                                                                class="btn btn-icon btn-ghost">
+                                                                                                <i
+                                                                                                    class="fa-solid fa-chevron-right"></i>
+                                                                                            </a>
+                                                                                            <% } else { %>
+                                                                                                <button
+                                                                                                    class="btn btn-icon btn-ghost"
+                                                                                                    disabled><i
+                                                                                                        class="fa-solid fa-chevron-right"></i></button>
+                                                                                                <% } %>
+                            </div>
+                            <div class="pagination-limit">
+                                <select class="form-select is-small" onchange="changeLimit(this.value)">
+                                    <option value="10" <%=pagination.limit===10 ? 'selected' : '' %>>10 / page</option>
+                                    <option value="25" <%=pagination.limit===25 ? 'selected' : '' %>>25 / page</option>
+                                    <option value="50" <%=pagination.limit===50 ? 'selected' : '' %>>50 / page</option>
+                                    <option value="100" <%=pagination.limit===100 ? 'selected' : '' %>>100 / page
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <% } %>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .page-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+            }
+
+            .page-title {
+                margin-bottom: 0.25rem;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+
+            .header-actions {
+                display: flex;
+                gap: 0.75rem;
+            }
+
+            /* Modal Styles Overrides */
+            .modal-content {
+                max-width: 600px;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .modal-header {
+                padding: 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--glass-border);
+            }
+
+            .modal-title {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+
+            .close-btn {
+                background: none;
+                border: none;
+                color: var(--color-text-muted);
+                cursor: pointer;
+                font-size: 1rem;
+                transition: color 0.2s;
+            }
+
+            .close-btn:hover {
+                color: var(--color-text-main);
+            }
+
+            .modal form {
+                padding: 1.5rem;
+            }
+
+            .modal-footer {
+                margin-top: 1.5rem;
+                display: flex;
+                justify-content: flex-end;
+                gap: 0.75rem;
+            }
+
+            /* Checkbox Container */
+            .checkbox-container {
+                display: flex;
+                align-items: center;
+                position: relative;
+                padding-left: 30px;
+                cursor: pointer;
+                user-select: none;
+            }
+
+            .checkbox-container input {
+                position: absolute;
+                opacity: 0;
+                cursor: pointer;
+                height: 0;
+                width: 0;
+            }
+
+            .checkmark {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 20px;
+                width: 20px;
+                border-radius: 4px;
+                background-color: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                transition: all 0.2s;
+            }
+
+            .checkbox-container:hover input~.checkmark {
+                border-color: var(--color-primary);
+            }
+
+            .checkbox-container input:checked~.checkmark {
+                background-color: var(--color-primary);
+                border-color: var(--color-primary);
+            }
+
+            .checkmark:after {
+                content: "";
+                position: absolute;
+                display: none;
+            }
+
+            .checkbox-container input:checked~.checkmark:after {
+                display: block;
+            }
+
+            .checkbox-container .checkmark:after {
+                left: 7px;
+                top: 3px;
+                width: 5px;
+                height: 10px;
+                border: solid white;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+            }
+
+            /* Table Styles */
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            }
+
+            .status-select {
+                width: auto;
+                min-width: 110px;
+                padding-right: 2rem;
+                cursor: pointer;
+            }
+
+            .status-select.pending {
+                border-color: var(--color-warning);
+                color: var(--color-warning);
+            }
+
+            .status-select.paid {
+                border-color: var(--color-success);
+                color: var(--color-success);
+            }
+
+            .status-select.cancelled {
+                border-color: var(--color-text-muted);
+                color: var(--color-text-muted);
+            }
+
+            .status-select.refunded {
+                border-color: var(--color-info);
+                color: var(--color-info);
+            }
+
+            .pagination-container {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1.5rem;
+                gap: 1rem;
+                border-top: 1px solid var(--glass-border);
+            }
+
+            .pagination-controls {
+                display: flex;
+                gap: 0.25rem;
+                align-items: center;
+            }
+
+            .pagination-dots {
+                color: var(--color-text-muted);
+                padding: 0 0.5rem;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .page-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 1rem;
+                }
+
+                .header-actions {
+                    width: 100%;
+                    justify-content: space-between;
+                }
+
+                .pagination-container {
+                    flex-direction: column;
+                    align-items: center;
+                }
+            }
+        </style>
+
+        <%- include('../partials/footer') %>
+
+            <script>
+                function openInvoiceModal() {
+                    document.getElementById('invoiceModal').classList.add('active');
+                    // Default due date to 7 days from now
+                    const dueDateInput = document.getElementById('dueDateInput');
+                    const defaultDate = new Date();
+                    defaultDate.setDate(defaultDate.getDate() + 7);
+                    dueDateInput.value = defaultDate.toISOString().split('T')[0];
+                    // Reset server dropdown
+                    filterServersByUser();
+                }
+
+                function closeInvoiceModal() {
+                    document.getElementById('invoiceModal').classList.remove('active');
+                }
+
+                function toggleDueDate(checkbox) {
+                    const dueDateInput = document.getElementById('dueDateInput');
+                    dueDateInput.disabled = checkbox.checked;
+                    if (checkbox.checked) {
+                        dueDateInput.value = '';
+                    } else {
+                        const defaultDate = new Date();
+                        defaultDate.setDate(defaultDate.getDate() + 7);
+                        dueDateInput.value = defaultDate.toISOString().split('T')[0];
+                    }
+                }
+
+                // Close modal on outside click
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', function (e) {
+                        if (e.target === this) {
+                            this.classList.remove('active');
+                        }
+                    });
+                });
+
+                // Filter servers by selected user
+                function filterServersByUser() {
+                    const userSelect = document.querySelector('select[name="user_id"]');
+                    const serverSelect = document.getElementById('serverSelect');
+                    const selectedUserId = userSelect.value;
+                    const options = Array.from(serverSelect.options);
+
+                    options.forEach(option => {
+                        if (option.value === '') {
+                            option.hidden = false;
+                        } else if (!selectedUserId || option.dataset.userId === selectedUserId) {
+                            option.hidden = false;
+                        } else {
+                            option.hidden = true;
+                        }
+                    });
+
+                    // Reset selection logic
+                    const currentOption = serverSelect.selectedOptions[0];
+                    if (currentOption && currentOption.value !== '' && currentOption.dataset.userId !== selectedUserId) {
+                        serverSelect.value = '';
+                    }
+                }
+
+                // Auto-select user when server is selected (if user hasn't been selected yet)
+                document.addEventListener('DOMContentLoaded', function () {
+                    const userSelect = document.querySelector('select[name="user_id"]');
+                    const serverSelect = document.getElementById('serverSelect');
+
+                    if (userSelect) {
+                        userSelect.addEventListener('change', filterServersByUser);
+                    }
+
+                    if (serverSelect) {
+                        serverSelect.addEventListener('change', function () {
+                            const selectedOption = this.options[this.selectedIndex];
+                            if (selectedOption && selectedOption.dataset.userId && userSelect && userSelect.value === '') {
+                                userSelect.value = selectedOption.dataset.userId;
+                            }
+                        });
+                    }
+                });
+
+                function changeLimit(limit) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('page', '1');
+                    url.searchParams.set('limit', limit);
+                    window.location.href = url.toString();
+                }
+            </script>

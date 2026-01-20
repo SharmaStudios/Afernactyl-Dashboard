@@ -1,0 +1,171 @@
+<%- include('../partials/header') %>
+    <%- include('../partials/sidebar') %>
+
+        <div class="main-content">
+            <div class="container animate-fade-in">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h1 class="page-title" style="margin:0;">Manage Plans</h1>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <form action="/admin/plans/mass-stock" method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="out_of_stock">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Mark ALL plans as out of stock?');">
+                                <i class="fa-solid fa-ban"></i> All Out of Stock
+                            </button>
+                        </form>
+                        <form action="/admin/plans/mass-stock" method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="in_stock">
+                            <button type="submit" class="btn btn-success btn-sm"
+                                onclick="return confirm('Mark ALL plans as in stock?');">
+                                <i class="fa-solid fa-check"></i> All In Stock
+                            </button>
+                        </form>
+                        <a href="/admin/plans/create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Create
+                            Plan</a>
+                    </div>
+                </div>
+
+                <% if (success_msg && success_msg.length> 0) { %>
+                    <div class="alert alert-success">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <%= success_msg %>
+                    </div>
+                    <% } %>
+
+                        <% if (error_msg && error_msg.length> 0) { %>
+                            <div class="alert alert-error">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <%= error_msg %>
+                            </div>
+                            <% } %>
+
+                                <div class="card card-table">
+                                    <% if (plans.length===0) { %>
+                                        <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                            <i class="fa-solid fa-box-open"
+                                                style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                            <p>No plans found. Create your first plan to get started.</p>
+                                        </div>
+                                        <% } else { %>
+                                            <div class="table-wrap">
+                                                <table class="data-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Name</th>
+                                                            <th>Category</th>
+                                                            <th>Price</th>
+                                                            <th>Resources</th>
+                                                            <th>Limits</th>
+                                                            <th>Status</th>
+                                                            <th>Servers</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <% plans.forEach(plan=> { %>
+                                                            <tr>
+                                                                <td>
+                                                                    <strong>
+                                                                        <%= plan.name %>
+                                                                    </strong>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge badge-secondary">
+                                                                        <%= plan.category_name || 'None' %>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="price-tag">$<%= plan.price %></span>/mo
+                                                                </td>
+                                                                <td>
+                                                                    <div class="resource-info">
+                                                                        <span title="RAM"><i
+                                                                                class="fa-solid fa-memory"></i>
+                                                                            <%= plan.ram / 1024 %> GB
+                                                                        </span>
+                                                                        <span title="CPU"><i
+                                                                                class="fa-solid fa-microchip"></i>
+                                                                            <%= plan.cpu / 100 %> Core<%= (plan.cpu/100)
+                                                                                    !==1 ? 's' : '' %>
+                                                                        </span>
+                                                                        <span title="Disk"><i
+                                                                                class="fa-solid fa-hard-drive"></i>
+                                                                            <%= plan.disk / 1024 %> GB
+                                                                        </span>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="limits-info">
+                                                                        <span title="Extra Ports"><i
+                                                                                class="fa-solid fa-network-wired"></i>
+                                                                            <%= plan.allocations || 0 %>
+                                                                        </span>
+                                                                        <span title="Databases"><i
+                                                                                class="fa-solid fa-database"></i>
+                                                                            <%= plan.db_count || 0 %>
+                                                                        </span>
+                                                                        <span title="Backups"><i
+                                                                                class="fa-solid fa-cloud-arrow-up"></i>
+                                                                            <%= plan.backups || 0 %>
+                                                                        </span>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="status-badges">
+                                                                        <% if (plan.is_out_of_stock) { %>
+                                                                            <span class="badge badge-danger">Out of
+                                                                                Stock</span>
+                                                                            <% } else { %>
+                                                                                <span
+                                                                                    class="badge badge-success">Active</span>
+                                                                                <% } %>
+                                                                                    <% if (!plan.is_visible) { %>
+                                                                                        <span
+                                                                                            class="badge badge-warning">Hidden</span>
+                                                                                        <% } %>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <span
+                                                                        class="server-count <%= plan.server_count > 0 ? 'has-servers' : '' %>">
+                                                                        <i class="fa-solid fa-server"></i>
+                                                                        <%= plan.server_count || 0 %>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <div
+                                                                        style="display: flex; gap: 0.5rem; align-items: center;">
+                                                                        <a href="/admin/plans/<%= plan.id %>/edit"
+                                                                            class="btn btn-sm btn-secondary">
+                                                                            <i class="fa-solid fa-pen"></i> Edit
+                                                                        </a>
+                                                                        <form action="/admin/plans/<%= plan.id %>/stock"
+                                                                            method="POST" style="display: inline;">
+                                                                            <% if (plan.is_out_of_stock) { %>
+                                                                                <button type="submit"
+                                                                                    class="btn btn-sm btn-success"
+                                                                                    title="Mark In Stock">
+                                                                                    <i class="fa-solid fa-check"></i>
+                                                                                </button>
+                                                                                <% } else { %>
+                                                                                    <button type="submit"
+                                                                                        class="btn btn-sm btn-danger"
+                                                                                        title="Mark Out of Stock">
+                                                                                        <i class="fa-solid fa-ban"></i>
+                                                                                    </button>
+                                                                                    <% } %>
+                                                                        </form>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            <% }); %>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <% } %>
+                                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/footer') %>

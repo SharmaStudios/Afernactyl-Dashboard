@@ -1,0 +1,185 @@
+<div class="sidebar" id="sidebar">
+    <div class="branding">
+        <% if (locals.site_logo) { %>
+            <img src="<%= site_logo %>" alt="Logo" class="sidebar-logo"
+                style="width: 32px; height: 32px; border-radius: 8px; object-fit: contain;">
+            <% } else { %>
+                <div class="logo-box"
+                    style="background: var(--color-primary); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--color-primary-glow);">
+                    <i class="fa-solid fa-dragon" style="color: white; font-size: 1.2rem;"></i>
+                </div>
+                <% } %>
+                    <span style="font-weight: 800; letter-spacing: -0.05em; font-size: 1.4rem;">
+                        <%= locals.site_name || 'AFERNACTYL' %>
+                    </span>
+    </div>
+
+    <!-- Sidebar Search -->
+    <div style="padding: 0 1rem 1.5rem;">
+        <div class="form-group" style="margin: 0; position: relative;">
+            <i class="fa-solid fa-search"
+                style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-text-dim); font-size: 0.8rem;"></i>
+            <input type="text" id="sidebarSearch" class="form-control" placeholder="Quick Search..."
+                style="padding-left: 2.5rem; font-size: 0.85rem; height: 40px; background: rgba(0,0,0,0.2);">
+        </div>
+    </div>
+
+    <div class="nav-links" id="navLinks">
+        <div class="nav-label">Main Console</div>
+        <a href="/dashboard" class="nav-item <%= path === '/dashboard' ? 'active' : '' %>">
+            <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </a>
+        <a href="/dashboard/servers" class="nav-item <%= path === '/dashboard/servers' ? 'active' : '' %>">
+            <i class="fa-solid fa-server"></i> Servers
+        </a>
+        <a href="/dashboard/store" class="nav-item <%= path === '/dashboard/store' ? 'active' : '' %>">
+            <i class="fa-solid fa-shop"></i> Store
+        </a>
+        <a href="/dashboard/invoices" class="nav-item <%= path === '/dashboard/invoices' ? 'active' : '' %>">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Invoices
+        </a>
+        <a href="/dashboard/tickets" class="nav-item <%= path && path.includes('/tickets') ? 'active' : '' %>">
+            <i class="fa-solid fa-life-ring"></i> Support
+        </a>
+        <a href="/dashboard/profile" class="nav-item <%= path === '/dashboard/profile' ? 'active' : '' %>">
+            <i class="fa-solid fa-user-cog"></i> Profile
+        </a>
+        <% if (locals.affiliate_enabled==='true' ) { %>
+            <a href="/dashboard/affiliates" class="nav-item <%= path === '/dashboard/affiliates' ? 'active' : '' %>"
+                style="color: var(--color-primary);">
+                <i class="fa-solid fa-people-group"></i> Affiliate Program
+            </a>
+            <% } %>
+
+                <% if (user && user.is_admin) { %>
+                    <div class="nav-label">Administration</div>
+                    <a href="/admin" class="nav-item <%= path === '/admin' ? 'active' : '' %>">
+                        <i class="fa-solid fa-gauge-high"></i> Overview
+                    </a>
+                    <a href="/admin/theme" class="nav-item <%= path === '/admin/theme' ? 'active' : '' %>"
+                        style="color: var(--color-warning);">
+                        <i class="fa-solid fa-palette"></i> Design System
+                    </a>
+
+                    <div class="nav-label">Store Management</div>
+                    <a href="/admin/plans"
+                        class="nav-item <%= path === '/admin/plans' || path && path.includes('/admin/plan') ? 'active' : '' %>">
+                        <i class="fa-solid fa-box-open"></i> Plans
+                    </a>
+                    <a href="/admin/categories" class="nav-item <%= path === '/admin/categories' ? 'active' : '' %>">
+                        <i class="fa-solid fa-tags"></i> Categories
+                    </a>
+                    <a href="/admin/locations" class="nav-item <%= path === '/admin/locations' ? 'active' : '' %>">
+                        <i class="fa-solid fa-location-dot"></i> Locations
+                    </a>
+                    <a href="/admin/coupons" class="nav-item <%= path === '/admin/coupons' ? 'active' : '' %>">
+                        <i class="fa-solid fa-ticket"></i> Coupons
+                    </a>
+                    <a href="/admin/currencies" class="nav-item <%= path === '/admin/currencies' ? 'active' : '' %>">
+                        <i class="fa-solid fa-coins"></i> Currencies
+                    </a>
+                    <a href="/admin/taxes" class="nav-item <%= path === '/admin/taxes' ? 'active' : '' %>">
+                        <i class="fa-solid fa-percent"></i> Taxes
+                    </a>
+
+                    <div class="nav-label">User Management</div>
+                    <a href="/admin/users"
+                        class="nav-item <%= path === '/admin/users' || path && path.includes('/admin/user') ? 'active' : '' %>">
+                        <i class="fa-solid fa-users"></i> Users
+                    </a>
+                    <a href="/admin/servers"
+                        class="nav-item <%= path === '/admin/servers' || path && path.includes('/admin/server') ? 'active' : '' %>">
+                        <i class="fa-solid fa-server"></i> All Servers
+                    </a>
+                    <a href="/admin/tickets" class="nav-item <%= path === '/admin/tickets' ? 'active' : '' %>">
+                        <i class="fa-solid fa-life-ring"></i> Support Tickets
+                    </a>
+                    <a href="/admin/broadcast" class="nav-item <%= path === '/admin/broadcast' ? 'active' : '' %>">
+                        <i class="fa-solid fa-bullhorn"></i> Broadcasts
+                    </a>
+
+                    <div class="nav-label">Finance</div>
+                    <a href="/admin/invoices" class="nav-item <%= path === '/admin/invoices' ? 'active' : '' %>">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> Invoices
+                    </a>
+                    <a href="/admin/gateways" class="nav-item <%= path === '/admin/gateways' ? 'active' : '' %>">
+                        <i class="fa-solid fa-credit-card"></i> Payment Gateways
+                    </a>
+                    <a href="/admin/affiliates"
+                        class="nav-item <%= path === '/admin/affiliates' || path && path.includes('/admin/payouts') ? 'active' : '' %>">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> Affiliates & Payouts
+                    </a>
+
+                    <div class="nav-label">System</div>
+                    <a href="/admin/settings" class="nav-item <%= path === '/admin/settings' ? 'active' : '' %>">
+                        <i class="fa-solid fa-gears"></i> Settings
+                    </a>
+                    <a href="/admin/smtp" class="nav-item <%= path === '/admin/smtp' ? 'active' : '' %>">
+                        <i class="fa-solid fa-envelope"></i> Email / SMTP
+                    </a>
+                    <a href="/admin/radar" class="nav-item <%= path === '/admin/radar' ? 'active' : '' %>">
+                        <i class="fa-solid fa-shield-virus"></i> Radar Protection
+                    </a>
+                    <a href="/admin/jobs" class="nav-item <%= path === '/admin/jobs' ? 'active' : '' %>">
+                        <i class="fa-solid fa-clock"></i> Scheduled Jobs
+                    </a>
+                    <a href="/admin/debug" class="nav-item <%= path === '/admin/debug' ? 'active' : '' %>">
+                        <i class="fa-solid fa-bug"></i> Debug
+                    </a>
+                    <% } %>
+    </div>
+
+    <div class="user-profile">
+        <img src="<%= user.gravatar %>" alt="User" class="profile-img">
+        <div class="user-info">
+            <div class="username">
+                <%= user.username %>
+            </div>
+            <div class="email" style="font-size: 0.7rem;">
+                <%= user.email %>
+            </div>
+        </div>
+        <a href="/auth/logout" class="logout-btn" title="Sign Out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+    </div>
+</div>
+
+<div class="mobile-toggle" onclick="toggleSidebar()">
+    <i class="fa-solid fa-bars"></i>
+</div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarBackdrop').classList.toggle('open');
+    }
+
+    // Sidebar Search Logic
+    const searchInput = document.getElementById('sidebarSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.nav-item');
+            const labels = document.querySelectorAll('.nav-label');
+
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(term)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hide labels if no visible items under them (simple)
+            if (term.length > 0) {
+                labels.forEach(l => l.style.display = 'none');
+            } else {
+                labels.forEach(l => l.style.display = 'block');
+            }
+        });
+    }
+</script>
