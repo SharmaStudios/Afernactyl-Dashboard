@@ -1,3 +1,7 @@
+![coverimage](https://i.imgur.com/Pp4qcss.jpeg)
+
+
+
 # Afernactyl Dashboard
 
 A powerful, modern billing and management dashboard for Pterodactyl.
